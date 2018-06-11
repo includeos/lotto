@@ -13,6 +13,7 @@ var (
 	setUpEnv         bool
 	forceNewStarbase bool
 	rebuildTest      bool
+	numRuns          int
 
 	mothershipConfigPath string
 	envConfigPath        string
@@ -67,7 +68,7 @@ var RootCmd = &cobra.Command{
 		}
 
 		// Run client command
-		result := t.RunTest(3, env)
+		result := t.RunTest(numRuns, env)
 		logrus.Info(result)
 	},
 }
@@ -78,6 +79,7 @@ func init() {
 	RootCmd.Flags().BoolVar(&setUpEnv, "create-env", false, "set up environment")
 	RootCmd.Flags().BoolVar(&forceNewStarbase, "force-new-starbase", false, "create a new starbase")
 	RootCmd.Flags().BoolVar(&rebuildTest, "rebuildTest", false, "push new nacl and rebuild before deploying")
+	RootCmd.Flags().IntVarP(&numRuns, "numTestRuns", "n", 1, "number of test iterations to run")
 
 	RootCmd.Flags().StringVar(&mothershipConfigPath, "mship-config", "config-mothership.json", "Mothership config file")
 	RootCmd.Flags().StringVar(&envConfigPath, "env-config", "config-environment.json", "Environments config file")
