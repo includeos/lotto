@@ -2,45 +2,61 @@ package testFramework
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
 	"os"
-	"path"
 
 	"github.com/mnordsletten/lotto/environment"
-	"github.com/mnordsletten/lotto/mothership"
 	"github.com/sirupsen/logrus"
 )
 
 type TestConfig struct {
-	ID              string `json:"id"`
-	Nacl            string
-	ClientCommand   string `json:"clientcommand"`
-	TestEnvironment environment.Environment
-	Mothership      *mothership.Mothership
-	Starbase        *mothership.Starbase
+	ID                  string `json:"id"`
+	NaclFile            string `json:"naclfile"`
+	ClientCommandScript string `json:"clientcommandscript"`
+	Level1              int    `json:"level1"`
+	Level2              int    `json:"level2"`
+	Level3              int    `json:"level3"`
 }
 
-func (t *TestConfig) SaveToDisk() error {
-	// Create data dir if it does not exist
-	if _, err := os.Stat("data"); os.IsNotExist(err) {
-		os.Mkdir("data", 0755)
-	}
-
-	// Save instance to file
-	b, err := json.Marshal(t)
-	if err != nil {
-		return err
-	}
-	filename := path.Join("data", t.ID+".json")
-	if err := ioutil.WriteFile(filename, b, 0600); err != nil {
-		return err
-	}
-	return nil
+type TestResult struct {
+	Sent              int     // Total number of requests sent
+	Received          int     // Total number of replies received
+	Rate              float32 // Requests pr second
+	Avg               float32 // Average response time
+	SuccessPercentage float32 // Percentage of packets that pass
+	Raw               string  // Raw output from the command
 }
 
-func (t *TestConfig) TestLoop(env environment.Environment) error {
-	logrus.Debugf("Started testloop for test: %s", t.ID)
+func (tr TestResult) String() string {
+	return fmt.Sprintf("Sent: %d, Received: %d Percentage: %.1f%%", tr.Sent, tr.Received, tr.SuccessPercentage)
+}
 
-	// Loop and monitor output from test
-	return nil
+func (t *TestConfig) RunTest(level int, env environment.Environment) TestResult {
+	var results []TestResult
+	for i := 0; i < level; i++ {
+		testOutput, err := env.RunClientCmdScript(t.ClientCommandScript)
+		if err != nil {
+			logrus.Fatalf("could not run client command script: %v", err)
+			os.Exit(1)
+		}
+		var testResult TestResult
+		if err = json.Unmarshal(testOutput, &testResult); err != nil {
+			logrus.Fatalf("could not parse testResults: %v", err)
+		}
+		testResult.SuccessPercentage = float32(testResult.Received) / float32(testResult.Sent) * 100
+		logrus.Infof("%s", testResult)
+		results = append(results, testResult)
+	}
+	return combineTestResults(results)
+}
+
+func combineTestResults(results []TestResult) TestResult {
+	end := TestResult{}
+	for _, result := range results {
+		end.Sent += result.Sent
+		end.Received += result.Received
+		end.Rate += result.Rate
+		end.SuccessPercentage = float32(end.Received) / float32(end.Sent) * 100
+	}
+	return end
 }

@@ -6,7 +6,6 @@ import (
 )
 
 func main() {
-	logrus.SetLevel(logrus.DebugLevel)
 	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
 	/*
 		testConf := testFramework.TestConfig{

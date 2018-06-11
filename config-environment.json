@@ -1,0 +1,11 @@
+{
+  "Vcloud": {
+  },
+  "Fusion": {
+    "sshRemote": "user@10.100.0.10",
+    "uplinkFile": "fusion-uplink.json",
+    "vmSpecPath": "fusionvm.json"
+  },
+  "Openstack": {
+  }
+}

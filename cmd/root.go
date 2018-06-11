@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/mnordsletten/lotto/environment"
 	"github.com/mnordsletten/lotto/mothership"
 	"github.com/mnordsletten/lotto/testFramework"
 	"github.com/sirupsen/logrus"
@@ -9,50 +8,77 @@ import (
 )
 
 var (
-	cmdEnv string
+	cmdEnv           string
+	verboseLogging   bool
+	setUpEnv         bool
+	forceNewStarbase bool
+	rebuildTest      bool
+
+	mothershipConfigPath string
+	envConfigPath        string
 )
 
 var RootCmd = &cobra.Command{
-	Use: "lotto",
+	Use:   "lotto TEST-PATH",
+	Short: "Run a test by specifying path to test config",
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		envSettings := environment.EnvSettings{
-			Username: "User",
-			Password: "Password",
-			AppName:  "TestApp",
-			Address:  "remote.org",
+		if verboseLogging {
+			logrus.SetLevel(logrus.DebugLevel)
 		}
-		// Create test definition
-		testSetup := &testFramework.TestConfig{
-			Nacl:          "microLB",
-			ClientCommand: "bash ping a lot",
-		}
-
-		// Environment setup
-		env, err := newEnvironment(cmdEnv, envSettings)
+		// Environment creation
+		env, err := envFromConfig(envConfigPath, cmdEnv)
 		if err != nil {
 			logrus.Fatalf("Could not set up environment: %v", err)
 		}
-		testSetup.TestEnvironment = env
-		testSetup.TestEnvironment.Create()
-		_, testSetup.Starbase = testSetup.TestEnvironment.BootStarbase()
+		if setUpEnv {
+			err = env.Create()
+			if err != nil {
+				logrus.Fatalf("Error setting up environment: %v", err)
+			}
+		}
 
-		// Set up Mothership
-		testSetup.Mothership = mothership.NewMothership("10.0.0.1", "10.0.0.10", "martin", "123")
+		// Mothership setup
+		var mother *mothership.Mothership
+		mother, err = mothershipFromConfig(mothershipConfigPath, env)
+		if err != nil {
+			logrus.Fatalf("Could not set up Mothership: %v", err)
+		}
 
+		// Only create a new starbase if requested, or there is no online starbase to use
+		if forceNewStarbase || !mother.CheckStarbaseIDInUse() {
+			logrus.Infof("Launching a new clean Starbase")
+			// Push nacl, build and download clean starbase image
+			if err = mother.LaunchCleanStarbase(env); err != nil {
+				logrus.Fatalf("error creating clean starbase: %v", err)
+			}
+		}
+
+		// Test setup
+		t, err := testFramework.ReadFromDisk(args[0])
+		if err != nil {
+			logrus.Fatalf("Could not read test spec: %v", err)
+		}
 		// Boot NaCl service to starbase
-		testSetup.Mothership.DeployNacl(testSetup.Nacl, testSetup.Starbase)
+		if rebuildTest {
+			if err = mother.DeployNacl(t.NaclFile); err != nil {
+				logrus.Fatalf("Could not deploy: %v", err)
+			}
+		}
 
 		// Run client command
-		testOutput, _ := testSetup.TestEnvironment.RunClientCmd(testSetup.ClientCommand)
-
-		// Set up monitoring ???
-
-		// Parse output from command
-		logrus.Infof("Test output: %s", testOutput)
-
+		result := t.RunTest(3, env)
+		logrus.Info(result)
 	},
 }
 
 func init() {
-	RootCmd.Flags().StringVar(&cmdEnv, "env", "vcloud", "environment to use")
+	RootCmd.Flags().StringVar(&cmdEnv, "env", "fusion", "environment to use")
+	RootCmd.Flags().BoolVarP(&verboseLogging, "verbose", "v", false, "verobse output")
+	RootCmd.Flags().BoolVar(&setUpEnv, "create-env", false, "set up environment")
+	RootCmd.Flags().BoolVar(&forceNewStarbase, "force-new-starbase", false, "create a new starbase")
+	RootCmd.Flags().BoolVar(&rebuildTest, "rebuildTest", false, "push new nacl and rebuild before deploying")
+
+	RootCmd.Flags().StringVar(&mothershipConfigPath, "mship-config", "config-mothership.json", "Mothership config file")
+	RootCmd.Flags().StringVar(&envConfigPath, "env-config", "config-environment.json", "Environments config file")
 }
