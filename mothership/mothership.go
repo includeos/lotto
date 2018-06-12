@@ -22,14 +22,15 @@ type Mothership struct {
 	Username   string `json:"username,omitempty"`
 	Password   string `json:"password,omitempty"`
 	VerifyTLS  bool   `json:"verifytls,omitempty"`
+	Binary     string `json:"binarypath,omitempty"`
 	uplinkname string
 	starbaseid string
 	tag        string
 }
 
 // NewMothership is used to generate a Mothership struct.
-func NewMothership(host, username, password string, port int, notls, verifytls bool, env environment.Environment) (*Mothership, error) {
-	m := &Mothership{Host: host, Port: port, NoTLS: notls, VerifyTLS: verifytls, Username: username, Password: password}
+func NewMothership(host, username, password, binary string, port int, notls, verifytls bool, env environment.Environment) (*Mothership, error) {
+	m := &Mothership{Host: host, Port: port, NoTLS: notls, VerifyTLS: verifytls, Username: username, Password: password, Binary: binary}
 
 	// Push the uplink to the mothership
 	uplinkInfo, err := env.GetUplinkInfo()
@@ -78,7 +79,7 @@ func (m *Mothership) LaunchCleanStarbase(env environment.Environment) error {
 	}
 
 	// Launch the newly built starbase
-	if err := Launch(cleanStarbaseImage, env); err != nil {
+	if err := m.Launch(cleanStarbaseImage, env); err != nil {
 		return err
 	}
 
@@ -241,7 +242,7 @@ func (m *Mothership) bin(request string) (string, error) {
 	reqList = append(reqList, "--username", m.Username, "--password", m.Password,
 		"--host", m.Host, "--port", strconv.Itoa(m.Port), tlsFlag, tlsInsecureFlag)
 	reqList = removeEmptyInSlice(reqList)
-	cmd := exec.Command("./mothership-bin", reqList...)
+	cmd := exec.Command(m.Binary, reqList...)
 	logrus.Debugf("mothership command: %v", cmd.Args)
 
 	byteOutput, err := cmd.CombinedOutput()
@@ -253,10 +254,9 @@ func (m *Mothership) bin(request string) (string, error) {
 	return string(output), nil
 }
 
-func Launch(imageName string, env environment.Environment) error {
-	bin := "./mothership-bin"
+func (m *Mothership) Launch(imageName string, env environment.Environment) error {
 	options := env.LaunchCmdOptions(imageName)
-	cmd := exec.Command(bin, options...)
+	cmd := exec.Command(m.Binary, options...)
 	logrus.Debugf("Launch command: %v", cmd.Args)
 	cmd.Env = append(os.Environ())
 	output, err := cmd.CombinedOutput()

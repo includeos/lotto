@@ -22,6 +22,7 @@ func mothershipFromConfig(filename string, env environment.Environment) (*mother
 		m.Host,
 		m.Username,
 		m.Password,
+		m.Binary,
 		m.Port,
 		m.NoTLS,
 		m.VerifyTLS,

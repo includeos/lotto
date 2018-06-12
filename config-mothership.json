@@ -4,5 +4,6 @@
   "notls": false,
   "username": "admin",
   "password": "123",
-  "verifytls": false
+  "verifytls": false,
+  "binarypath": "mothership"
 }
