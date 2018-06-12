@@ -1,0 +1,37 @@
+Iface outside {
+    index: 0,
+    address: 10.100.0.30,
+    netmask: 255.255.255.128,
+    gateway: 10.100.0.1,
+    prerouting: ipDnat
+
+}
+Iface inside {
+    index: 1,
+    address: 10.100.0.140,
+    netmask: 255.255.255.128
+}
+
+Nat::IP ipDnat {
+    if (ip.daddr == 10.100.0.200) {
+        dnat(10.100.0.150)
+    }
+}
+
+Gateway gw [
+    {
+        net: 10.100.0.0,
+        netmask: 255.255.255.128,
+        iface: outside
+    },
+    {
+        net: 10.100.0.128,
+        netmask: 255.255.255.128,
+        iface: inside
+    },
+    {
+        net: 0.0.0.0,
+        netmask: 0.0.0.0,
+        iface: outside
+    }
+]
