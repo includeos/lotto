@@ -34,7 +34,7 @@ func (tr TestResult) String() string {
 func (t *TestConfig) RunTest(level int, env environment.Environment) TestResult {
 	var results []TestResult
 	for i := 0; i < level; i++ {
-		testOutput, err := env.RunClientCmdScript(t.ClientCommandScript)
+		testOutput, err := env.RunClientCmdScript(1, t.ClientCommandScript)
 		if err != nil {
 			logrus.Fatalf("could not run client command script: %v", err)
 			os.Exit(1)

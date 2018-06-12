@@ -28,7 +28,7 @@ func newEnvironment(targetEnv string, settings *environment.EnvSettings) (enviro
 		return environment.NewOpenstack(), nil
 	case "fusion":
 		return environment.NewFusion(
-			settings.Fusion.SshRemote,
+			settings.Fusion.Clients,
 			settings.Fusion.UplinkFile,
 			settings.Fusion.VmspecPath), nil
 	default:

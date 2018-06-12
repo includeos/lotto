@@ -37,11 +37,11 @@ func (o *Openstack) LaunchCmdOptions(string) []string {
 	return []string{}
 }
 
-func (o *Openstack) RunClientCmd(cmd string) (string, error) {
+func (o *Openstack) RunClientCmd(clientNum int, cmd string) (string, error) {
 	logrus.Debugf("Running client cmd: %s", cmd)
 	return "OK", nil
 }
 
-func (o *Openstack) RunClientCmdScript(file string) ([]byte, error) {
+func (o *Openstack) RunClientCmdScript(clientNum int, file string) ([]byte, error) {
 	return nil, nil
 }

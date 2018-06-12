@@ -3,7 +3,6 @@ package environment
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os/exec"
 	"strings"
@@ -21,6 +20,7 @@ type Vcloud struct {
 	NetworkName  string
 	SshRemote    string
 	UplinkFile   string
+	Clients      SSHClients `json:"sshclients"`
 }
 
 func (v *Vcloud) Name() string {
@@ -91,7 +91,8 @@ func (v *Vcloud) LaunchCmdOptions(imageName string) []string {
 		imageName}
 }
 
-func (v *Vcloud) RunClientCmd(cmd string) (string, error) {
+func (v *Vcloud) RunClientCmd(clientNum int, cmd string) (string, error) {
+	// TODO: Use clientNum here
 	logrus.Debugf("Running client cmd: %s. with: %s", cmd, v)
 	x := exec.Command("ssh", v.SshRemote, cmd)
 	byteOutput, err := x.Output()
@@ -105,50 +106,11 @@ func (v *Vcloud) RunClientCmd(cmd string) (string, error) {
 // RunClientCmdScript takes a file and runs it on the remote machine
 // It does this by opening an ssh connection and passing in the script contents
 // to the running bash process
-func (v *Vcloud) RunClientCmdScript(file string) ([]byte, error) {
+func (v *Vcloud) RunClientCmdScript(clientNum int, file string) ([]byte, error) {
 	logrus.Debugf("Running client script: %s. with: %s", file, v)
-	bytes, err := ioutil.ReadFile(file)
+	clientStr, err := v.Clients.getClientByInt(clientNum)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting client: %v", err)
 	}
-	x := exec.Command("ssh", v.SshRemote, "bash -s")
-	stdin, err := x.StdinPipe()
-	if err != nil {
-		return nil, err
-	}
-	stdout, err := x.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-	stderr, err := x.StderrPipe()
-	if err != nil {
-		return nil, err
-	}
-	err = x.Start()
-	if err != nil {
-		return nil, err
-	}
-
-	// Send script contents to process
-	_, err = io.WriteString(stdin, string(bytes))
-	if err != nil {
-		return nil, err
-	}
-	stdin.Close()
-	out, err := ioutil.ReadAll(stdout)
-	if err != nil {
-		return nil, fmt.Errorf("stdout read err: %v", err)
-	}
-	outerr, err := ioutil.ReadAll(stderr)
-	if err != nil {
-		return nil, fmt.Errorf("stderr read err: %v", err)
-	}
-	// Check for exit errors
-	if err := x.Wait(); err != nil {
-		if exiterr, ok := err.(*exec.ExitError); ok {
-			return nil, fmt.Errorf("%v: %s", exiterr, string(outerr))
-		}
-	}
-	return out, nil
-
+	return runSSHScript(file, clientStr)
 }
