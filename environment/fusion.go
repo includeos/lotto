@@ -69,9 +69,11 @@ func (f *Fusion) LaunchCmdOptions(imageName string) []string {
 }
 
 func (f *Fusion) RunClientCmd(clientNum int, cmd string) (string, error) {
-	logrus.Debugf("Running client cmd: %s", cmd)
-
-	return "OK", nil
+	clientStr, err := f.Clients.getClientByInt(clientNum)
+	if err != nil {
+		return "", fmt.Errorf("error getting client: %v", err)
+	}
+	return runRemoteCmd(cmd, clientStr)
 }
 
 func (f *Fusion) RunClientCmdScript(clientNum int, file string) ([]byte, error) {

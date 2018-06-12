@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/mnordsletten/lotto/environment"
 	"github.com/mnordsletten/lotto/mothership"
 	"github.com/mnordsletten/lotto/testFramework"
 	"github.com/sirupsen/logrus"
@@ -37,6 +38,9 @@ var RootCmd = &cobra.Command{
 			if err != nil {
 				logrus.Fatalf("Error setting up environment: %v", err)
 			}
+		}
+		if err := environment.VerifyEnv(env); err != nil {
+			logrus.Fatalf("Error verifying env: %v", err)
 		}
 
 		// Mothership setup

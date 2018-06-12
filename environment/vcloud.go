@@ -92,15 +92,11 @@ func (v *Vcloud) LaunchCmdOptions(imageName string) []string {
 }
 
 func (v *Vcloud) RunClientCmd(clientNum int, cmd string) (string, error) {
-	// TODO: Use clientNum here
-	logrus.Debugf("Running client cmd: %s. with: %s", cmd, v)
-	x := exec.Command("ssh", v.SshRemote, cmd)
-	byteOutput, err := x.Output()
+	clientStr, err := v.Clients.getClientByInt(clientNum)
 	if err != nil {
-		return "", fmt.Errorf("error running cmd: %v", err)
+		return "", fmt.Errorf("error getting client: %v", err)
 	}
-	output := strings.TrimSuffix(string(byteOutput), "\n")
-	return output, nil
+	return runRemoteCmd(cmd, clientStr)
 }
 
 // RunClientCmdScript takes a file and runs it on the remote machine

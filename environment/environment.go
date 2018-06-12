@@ -5,6 +5,10 @@ import (
 	"io"
 	"io/ioutil"
 	"os/exec"
+	"strconv"
+	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 type UplinkInfo struct {
@@ -47,7 +51,45 @@ type Environment interface {
 	RunClientCmdScript(clientNum int, file string) ([]byte, error)
 }
 
-func VerifyEnv(env *Environment) error {
+func VerifyEnv(env Environment) error {
+	net1Route := "10.100.0.128/25 via 10.100.0.30 dev ens38"
+	net2Route := "10.100.0.0/25 via 10.100.0.140 dev ens38"
+	if err := verifyRoute(env, net1Route, 1); err != nil {
+		return err
+	}
+	if err := verifyRoute(env, net1Route, 2); err != nil {
+		return err
+	}
+	if err := verifyRoute(env, net2Route, 3); err != nil {
+		return err
+	}
+	return nil
+}
+
+// verifyRoute will check if route exists, and if not create a new one
+func verifyRoute(env Environment, route string, clientNum int) error {
+	// Check if route exists already
+	existsCmd := fmt.Sprintf("ip route show %s | wc -l", route)
+	numLines, err := env.RunClientCmd(clientNum, existsCmd)
+	if err != nil {
+		return fmt.Errorf("error checking if route exists: %v", err)
+	}
+	lines, err := strconv.Atoi(numLines)
+	if err != nil {
+		return fmt.Errorf("could not convert numLines to int: %v", err)
+	}
+	if lines > 0 {
+		logrus.Debugf("Routes exist for client: %d", clientNum)
+		return nil
+	}
+
+	// set up new route
+	newRouteCmd := fmt.Sprintf("sudo ip route add %s", route)
+	_, err = env.RunClientCmd(clientNum, newRouteCmd)
+	if err != nil {
+		return fmt.Errorf("error setting up route: %v", err)
+	}
+	logrus.Debugf("Set up new routes for client: %d", clientNum)
 	return nil
 }
 
@@ -95,4 +137,14 @@ func runSSHScript(file, SSHRemote string) ([]byte, error) {
 		}
 	}
 	return out, nil
+}
+
+func runRemoteCmd(cmd, sshRemote string) (string, error) {
+	x := exec.Command("ssh", "-o", "StrictHostKeyChecking=no", sshRemote, cmd)
+	byteOutput, err := x.Output()
+	if err != nil {
+		return string(byteOutput), fmt.Errorf("error running cmd: %v", err)
+	}
+	output := strings.TrimSuffix(string(byteOutput), "\n")
+	return output, nil
 }
