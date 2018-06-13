@@ -13,7 +13,7 @@ var (
 	verboseLogging   bool
 	setUpEnv         bool
 	forceNewStarbase bool
-	rebuildTest      bool
+	skipRebuildTest  bool
 	numRuns          int
 
 	mothershipConfigPath string
@@ -65,7 +65,7 @@ var RootCmd = &cobra.Command{
 			logrus.Fatalf("Could not read test spec: %v", err)
 		}
 		// Boot NaCl service to starbase
-		if rebuildTest {
+		if !skipRebuildTest {
 			if err = mother.DeployNacl(t.NaclFile); err != nil {
 				logrus.Fatalf("Could not deploy: %v", err)
 			}
@@ -82,7 +82,7 @@ func init() {
 	RootCmd.Flags().BoolVarP(&verboseLogging, "verbose", "v", false, "verobse output")
 	RootCmd.Flags().BoolVar(&setUpEnv, "create-env", false, "set up environment")
 	RootCmd.Flags().BoolVar(&forceNewStarbase, "force-new-starbase", false, "create a new starbase")
-	RootCmd.Flags().BoolVar(&rebuildTest, "rebuildTest", false, "push new nacl and rebuild before deploying")
+	RootCmd.Flags().BoolVar(&skipRebuildTest, "skipRebuildTest", false, "push new nacl and rebuild before deploying")
 	RootCmd.Flags().IntVarP(&numRuns, "numTestRuns", "n", 1, "number of test iterations to run")
 
 	RootCmd.Flags().StringVar(&mothershipConfigPath, "mship-config", "config-mothership.json", "Mothership config file")
