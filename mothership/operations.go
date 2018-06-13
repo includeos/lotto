@@ -53,12 +53,11 @@ func (m *Mothership) createCleanStarbase() error {
 // to the Mothership.
 func (m *Mothership) LaunchCleanStarbase(env environment.Environment) error {
 	// Remove old alias, if it does not exist an error is returned but that does not matter
-	if err := m.deleteInstanceByAlias(m.starbaseid); err != nil {
-		logrus.Debugf("%s could not be removed: %v", m.starbaseid, err)
+	if err := m.deleteInstanceByAlias(m.alias); err != nil {
+		logrus.Debugf("%s could not be removed: %v", m.alias, err)
 	}
 
 	// Create a new tag which is inserted in the image that is built
-	m.tag = fmt.Sprintf("lotto-%s", time.Now().Format("20060102150405"))
 	if err := m.createCleanStarbase(); err != nil {
 		return err
 	}
@@ -69,16 +68,15 @@ func (m *Mothership) LaunchCleanStarbase(env environment.Environment) error {
 	}
 
 	// Wait until the starbase with the "unique" tag we just created connects
-	if err := m.waitUntilStarbaseConnects(m.tag); err != nil {
+	id, err := m.waitUntilStarbaseConnects(m.lastBuildTag)
+	if err != nil {
 		return err
 	}
 
 	// Set the alias to something generic
-	/*
-		if err := m.setAlias(m.starbaseid, m.tag); err != nil {
-			return err
-		}
-	*/
+	if err := m.setAlias(m.alias, id); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -86,35 +84,44 @@ func (m *Mothership) CheckStarbaseIDInUse() bool {
 	type starbase struct {
 		Online bool
 	}
-	request := fmt.Sprintf("inspect-instance %s -o json", m.starbaseid)
+	request := fmt.Sprintf("inspect-instance %s -o json", m.alias)
 	response, err := m.bin(request)
 	if err != nil {
-		logrus.Infof("Mothership: starbase %s does not exist", m.starbaseid)
+		logrus.Infof("Mothership: starbase with alias: %s does not exist", m.alias)
 		return false
 	}
-	logrus.Infof("Mothership: starbase %s exists", m.starbaseid)
+	logrus.Infof("Mothership: starbase with alias: %s exists", m.alias)
 	var star starbase
 	if err := json.Unmarshal([]byte(response), &star); err != nil {
 		logrus.Debugf("could not check if starbase is online: %v", err)
 		return false
 	}
 	if !star.Online {
-		logrus.Infof("Mothership: starbase %s is offline", m.starbaseid)
+		logrus.Infof("Mothership: starbase with alias: %s is offline", m.alias)
 		return false
 	}
 	return true
 }
 
-func (m *Mothership) waitUntilStarbaseConnects(tag string) error {
-	logrus.Debugf("Now waiting for starbase %s to connect", tag)
+func (m *Mothership) waitUntilStarbaseConnects(tag string) (string, error) {
+	logrus.Debugf("Now waiting for starbase with tag: %s to connect", tag)
+	ids := make(map[string]interface{})
 	deadLine := time.Now().Add(180 * time.Second)
 	for time.Now().Before(deadLine) {
-		req := fmt.Sprintf("inspect-instance %s", m.starbaseid)
-		if _, err := m.bin(req); err == nil {
-			logrus.Debugf("Starbase %s connected", m.starbaseid)
-			return nil
+		req := fmt.Sprintf("search %s --instancefilter tag -o json", tag)
+		if output, err := m.bin(req); err == nil {
+			// Cmd did not return an error
+			err := json.Unmarshal([]byte(output), &ids)
+			if err != nil {
+				return "", fmt.Errorf("error unmarshaling json from search: %v", err)
+			}
+			for key := range ids {
+				// there is at least 1 key in the output
+				logrus.Debugf("Starbase with tag: %s connected", tag)
+				return key, nil
+			}
 		}
 		time.Sleep(2 * time.Second)
 	}
-	return fmt.Errorf("Starbase %s never connected to mothership", tag)
+	return "", fmt.Errorf("Starbase %s never connected to mothership", tag)
 }

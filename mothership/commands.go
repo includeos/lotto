@@ -7,6 +7,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/mnordsletten/lotto/environment"
 	"github.com/sirupsen/logrus"
@@ -46,7 +47,8 @@ func (m *Mothership) pushUplink(file, name string) error {
 // build will build with the specified naclID that needs to exist on mothership
 func (m *Mothership) build(naclID string) (string, error) {
 	logrus.Infof("Building image with nacl: %s", naclID)
-	request := fmt.Sprintf("build --waitAndPrint -n %s -u %s --tag %s Starbase", naclID, m.uplinkname, m.tag)
+	m.lastBuildTag = fmt.Sprintf("lotto-%s", time.Now().Format("20060102150405"))
+	request := fmt.Sprintf("build --waitAndPrint -n %s -u %s --tag %s Starbase", naclID, m.uplinkname, m.lastBuildTag)
 	checksum, err := m.bin(request)
 	if err != nil {
 		return "", fmt.Errorf("error building: %v", err)
@@ -67,8 +69,8 @@ func (m *Mothership) pullImage(checksum, targetName string) error {
 
 // deploy takes an image checksum and deploys to starbase
 func (m *Mothership) deploy(checksum string) error {
-	logrus.Infof("Deploying %s to %s", checksum, m.starbaseid)
-	request := fmt.Sprintf("deploy %s %s", m.starbaseid, checksum)
+	logrus.Infof("Deploying %s to %s", checksum, m.alias)
+	request := fmt.Sprintf("deploy %s %s", m.alias, checksum)
 	if _, err := m.bin(request); err != nil {
 		return fmt.Errorf("error deploying: %v", err)
 	}
