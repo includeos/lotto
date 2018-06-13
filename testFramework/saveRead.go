@@ -35,6 +35,9 @@ func ReadFromDisk(name string) (*TestConfig, error) {
 	if err = json.Unmarshal(file, test); err != nil {
 		return test, fmt.Errorf("error decoding json: %v", err)
 	}
+	testDir := path.Dir(name)
+	test.NaclFile = path.Join(testDir, test.NaclFile)
+	test.ClientCommandScript = path.Join(testDir, test.ClientCommandScript)
 
 	/*
 		nacl, err := ioutil.ReadFile(test.NaclFile)

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -99,7 +101,8 @@ func (m *Mothership) LaunchCleanStarbase(env environment.Environment) error {
 
 func (m *Mothership) pushNacl(naclFileName string) (string, error) {
 	logrus.Infof("Pushing NaCl: %s", naclFileName)
-	targetName := strings.Split(naclFileName, ".")[0]
+	fileName := path.Base(naclFileName)
+	targetName := fmt.Sprintf("lotto-test-%s", strings.TrimSuffix(fileName, filepath.Ext(fileName)))
 	request := fmt.Sprintf("push-nacl %s --name %s -o id", naclFileName, targetName)
 	response, err := m.bin(request)
 	if err != nil {
