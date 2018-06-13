@@ -21,8 +21,8 @@ var (
 )
 
 var RootCmd = &cobra.Command{
-	Use:   "lotto TEST-PATH",
-	Short: "Run a test by specifying path to test config",
+	Use:   "lotto TEST-FOLDER-PATH",
+	Short: "Run a test by specifying which test folder to run",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if verboseLogging {
