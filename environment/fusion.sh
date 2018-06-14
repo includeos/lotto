@@ -3,6 +3,7 @@ set -e
 
 # Script for creating a lotto environment in fusion
 
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 vmrun=/Applications/VMware\ Fusion.app/Contents/Library/vmrun
 cd ~/Documents/Virtual\ Machines.localized
 uname=user
@@ -17,28 +18,40 @@ l4="lotto_client_4/lotto_client_4.vmx"
 ######
 # Set up networks
 # 1. Create lotto1 with DHCP, Subnet IP: 10.100.0.0, Subnet Mask: 255.255.255.128
-lotto1_network_name=vmnet5 #changing to a custom name does not work
+lotto1_network_name=$("$vmrun" listHostNetworks | grep 10.100.0.0 | tr -s ' ' | cut -d ' ' -f 2)
+sed -i "" -e 's/CHANGEME1/'"$lotto1_network_name"'/g' $script_dir/../fusionvm.json
 # 2. Create lotto2 with DHCP, Subnet IP: 10.100.0.128, Subnet Mask: 255.255.255.128
-lotto2_network_name=vmnet6 #changing to a custom name does not work
-# 3. Add SSH key to .ssh/authorized keys for client1
+lotto2_network_name=$("$vmrun" listHostNetworks | grep 10.100.0.128 | tr -s ' ' | cut -d ' ' -f 2)
+sed -i "" -e 's/CHANGEME2/'"$lotto2_network_name"'/g' $script_dir/../fusionvm.json
 
 #####
 # Clean up
 #####
 printf "#### %s\n" "Cleaning up any existing environment"
-"$vmrun" stop $l2 || echo $l2 is not running
-"$vmrun" stop $l3 || echo $l3 is not running
-"$vmrun" stop $l4 || echo $l4 is not running
-rm -r lotto_client_2/* || echo lotto_client_2 folder does not need to be deleted
-rm -r lotto_client_3/* || echo lotto_client_3 folder does not need to be deleted
-rm -r lotto_client_4/* || echo lotto_client_4 folder does not need to be deleted
+"$vmrun" stop $l2 2&>1 > /dev/null || true
+"$vmrun" stop $l3 2&>1 > /dev/null || true
+"$vmrun" stop $l4 2&>1 > /dev/null || true
+rm -r lotto_client_2/* 2&>1 > /dev/null || true
+rm -r lotto_client_3/* 2&>1 > /dev/null || true
+rm -r lotto_client_4/* 2&>1 > /dev/null || true
 
 ######
 # Set up client 1
 ######
 # Ensure only 1 interface
-printf "#### %s\n" "Setting up client1 before copy"
-"$vmrun" start $l1 || echo $l1 does not need to be started
+printf "#### %s\n" "Setting up client1 before copy, enter password 123 if prompted"
+"$vmrun" start $l1 nogui > /dev/null || echo $l1 is already running
+until ip=$("$vmrun" getGuestIPAddress $l1)
+do
+  "$vmrun" -gu $uname -gp $pwd runScriptInGuest $l1 /bin/bash "echo hey"
+  ((loops+=1))
+  if [ $loops -gt 100 ]; then
+    echo could not get ip of client1 exiting
+    exit 1
+  fi
+  sleep 1
+done
+ssh-copy-id -i ~/.ssh/id_rsa.pub user@$ip
 "$vmrun" stop $l1
 while [[ $("$vmrun" listNetworkAdapters lotto_client_1/lotto_client_1.vmx | wc -l) -gt 3 ]]; do
   "$vmrun" deleteNetworkAdapter $l1 1
