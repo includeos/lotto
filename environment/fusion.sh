@@ -10,6 +10,7 @@ pwd=123
 l1="lotto_client_1/lotto_client_1.vmx"
 l2="lotto_client_2/lotto_client_2.vmx"
 l3="lotto_client_3/lotto_client_3.vmx"
+l4="lotto_client_4/lotto_client_4.vmx"
 
 ######
 # Manual steps
@@ -25,9 +26,12 @@ lotto2_network_name=vmnet6 #changing to a custom name does not work
 # Clean up
 #####
 
-"$vmrun" stop $l2 || echo $l2 does not need to be stopped
-"$vmrun" stop $l3 || echo $l3 does not need to be stopped
-rm -r lotto_client_2/* lotto_client_3/*
+"$vmrun" stop $l2 || echo $l2 is not running
+"$vmrun" stop $l3 || echo $l3 is not running
+"$vmrun" stop $l4 || echo $l4 is not running
+rm -r lotto_client_2/* || echo lotto_client_2 folder does not need to be deleted
+rm -r lotto_client_3/* || echo lotto_client_3 folder does not need to be deleted
+rm -r lotto_client_4/* || echo lotto_client_4 folder does not need to be deleted
 
 ######
 # Set up client 1
@@ -44,9 +48,10 @@ done
 # Clone
 ######
 
-mkdir -p lotto_client_2 lotto_client_3
+mkdir -p lotto_client_2 lotto_client_3 lotto_client_4
 "$vmrun" clone $l1 $l2 linked -cloneName=lotto_client_2
 "$vmrun" clone $l1 $l3 linked -cloneName=lotto_client_3
+"$vmrun" clone $l1 $l4 linked -cloneName=lotto_client_4
 
 #####
 # Hook up to networks
@@ -54,6 +59,7 @@ mkdir -p lotto_client_2 lotto_client_3
 "$vmrun" addNetworkAdapter $l1 custom $lotto1_network_name
 "$vmrun" addNetworkAdapter $l2 custom $lotto1_network_name
 "$vmrun" addNetworkAdapter $l3 custom $lotto2_network_name
+"$vmrun" addNetworkAdapter $l4 custom $lotto2_network_name
 
 ####
 # Start machines
@@ -61,6 +67,7 @@ mkdir -p lotto_client_2 lotto_client_3
 "$vmrun" start $l1 nogui
 "$vmrun" start $l2 nogui
 "$vmrun" start $l3 nogui
+"$vmrun" start $l4 nogui
 
 #####
 # Set ip's
@@ -68,11 +75,13 @@ mkdir -p lotto_client_2 lotto_client_3
 client1_ip=10.100.0.10/25
 client2_ip=10.100.0.20/25
 client3_ip=10.100.0.150/25
+client4_ip=10.100.0.160/25
 netplan="network:\n    ethernets:\n        ens38:\n            addresses: [%s]\n"
 
 "$vmrun" -gu $uname -gp $pwd runScriptInGuest $l1 /bin/bash 'printf "'"$netplan"'" "'"$client1_ip"'" | sudo tee /etc/netplan/51-lotto.yaml; sudo netplan apply'
 "$vmrun" -gu $uname -gp $pwd runScriptInGuest $l2 /bin/bash 'printf "'"$netplan"'" "'"$client2_ip"'" | sudo tee /etc/netplan/51-lotto.yaml; sudo netplan apply'
 "$vmrun" -gu $uname -gp $pwd runScriptInGuest $l3 /bin/bash 'printf "'"$netplan"'" "'"$client3_ip"'" | sudo tee /etc/netplan/51-lotto.yaml; sudo netplan apply'
+"$vmrun" -gu $uname -gp $pwd runScriptInGuest $l4 /bin/bash 'printf "'"$netplan"'" "'"$client4_ip"'" | sudo tee /etc/netplan/51-lotto.yaml; sudo netplan apply'
 
 #####
 # Get ip for lotto1

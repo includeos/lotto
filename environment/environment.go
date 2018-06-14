@@ -21,6 +21,7 @@ type SSHClients struct {
 	Client1 string `json:"client1"`
 	Client2 string `json:"client2"`
 	Client3 string `json:"client3"`
+	Client4 string `json:"client4"`
 }
 
 func (c *SSHClients) getClientByInt(num int) (string, error) {
@@ -31,6 +32,8 @@ func (c *SSHClients) getClientByInt(num int) (string, error) {
 		return c.Client2, nil
 	case 3:
 		return c.Client3, nil
+	case 4:
+		return c.Client4, nil
 	default:
 		return "", fmt.Errorf("Client num %d does not exist", num)
 	}
@@ -63,6 +66,9 @@ func VerifyEnv(env Environment) error {
 	if err := verifyRoute(env, net2Route, 3); err != nil {
 		return err
 	}
+	if err := verifyRoute(env, net2Route, 4); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -72,7 +78,7 @@ func verifyRoute(env Environment, route string, clientNum int) error {
 	existsCmd := fmt.Sprintf("ip route show %s | wc -l", route)
 	numLines, err := env.RunClientCmd(clientNum, existsCmd)
 	if err != nil {
-		return fmt.Errorf("error checking if route exists: %v", err)
+		return fmt.Errorf("error checking if route to client %d exists: %v", clientNum, err)
 	}
 	lines, err := strconv.Atoi(numLines)
 	if err != nil {

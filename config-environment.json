@@ -8,7 +8,8 @@
     "sshclients": {
       "client1": "user@10.100.0.10",
       "client2": "user@10.100.0.20",
-      "client3": "user@10.100.0.150"
+      "client3": "user@10.100.0.150",
+      "client4": "user@10.100.0.160"
     }
 
   },
