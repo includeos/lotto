@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+set -e
 
 # Script for creating a lotto environment in fusion
 
@@ -25,7 +25,7 @@ lotto2_network_name=vmnet6 #changing to a custom name does not work
 #####
 # Clean up
 #####
-
+printf "#### %s\n" "Cleaning up any existing environment"
 "$vmrun" stop $l2 || echo $l2 is not running
 "$vmrun" stop $l3 || echo $l3 is not running
 "$vmrun" stop $l4 || echo $l4 is not running
@@ -37,17 +37,17 @@ rm -r lotto_client_4/* || echo lotto_client_4 folder does not need to be deleted
 # Set up client 1
 ######
 # Ensure only 1 interface
+printf "#### %s\n" "Setting up client1 before copy"
 "$vmrun" start $l1 || echo $l1 does not need to be started
 "$vmrun" stop $l1
 while [[ $("$vmrun" listNetworkAdapters lotto_client_1/lotto_client_1.vmx | wc -l) -gt 3 ]]; do
   "$vmrun" deleteNetworkAdapter $l1 1
 done
 
-
 ######
 # Clone
 ######
-
+printf "#### %s\n" "Cloning client1 to the other clients"
 mkdir -p lotto_client_2 lotto_client_3 lotto_client_4
 "$vmrun" clone $l1 $l2 linked -cloneName=lotto_client_2
 "$vmrun" clone $l1 $l3 linked -cloneName=lotto_client_3
@@ -56,6 +56,7 @@ mkdir -p lotto_client_2 lotto_client_3 lotto_client_4
 #####
 # Hook up to networks
 #####
+printf "#### %s\n" "Hooking up all clients to networks"
 "$vmrun" addNetworkAdapter $l1 custom $lotto1_network_name
 "$vmrun" addNetworkAdapter $l2 custom $lotto1_network_name
 "$vmrun" addNetworkAdapter $l3 custom $lotto2_network_name
@@ -64,14 +65,16 @@ mkdir -p lotto_client_2 lotto_client_3 lotto_client_4
 ####
 # Start machines
 ####
-"$vmrun" start $l1 nogui
-"$vmrun" start $l2 nogui
-"$vmrun" start $l3 nogui
-"$vmrun" start $l4 nogui
+printf "#### %s\n" "Starting all clients"
+"$vmrun" start $l1 nogui > /dev/null
+"$vmrun" start $l2 nogui > /dev/null
+"$vmrun" start $l3 nogui > /dev/null
+"$vmrun" start $l4 nogui > /dev/null
 
 #####
 # Set ip's
 #####
+printf "#### %s\n" "Configuring IP settings for clients"
 client1_ip=10.100.0.10/25
 client2_ip=10.100.0.20/25
 client3_ip=10.100.0.150/25
@@ -84,8 +87,6 @@ netplan="network:\n    ethernets:\n        ens38:\n            addresses: [%s]\n
 "$vmrun" -gu $uname -gp $pwd runScriptInGuest $l4 /bin/bash 'printf "'"$netplan"'" "'"$client4_ip"'" | sudo tee /etc/netplan/51-lotto.yaml; sudo netplan apply'
 
 #####
-# Get ip for lotto1
+# Success
 ####
-"$vmrun" -gu $uname -gp $pwd runScriptInGuest $l1 /bin/bash 'ip -4 addr show ens33 | grep -oP "(?<=inet\s)\d+(\.\d+){3}" > /home/user/ip.txt'
-"$vmrun" -gu $uname -gp $pwd CopyFileFromGuestToHost  $l1 /home/user/ip.txt ip.txt
-cat ip.txt
+printf "#### %s\n" "Successfully set up"
