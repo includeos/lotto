@@ -24,7 +24,7 @@ type SSHClients struct {
 	Client4 string `json:"client4"`
 }
 
-func (c *SSHClients) getClientByInt(num int) (string, error) {
+func (c *SSHClients) GetClientByInt(num int) (string, error) {
 	switch num {
 	case 1:
 		return c.Client1, nil

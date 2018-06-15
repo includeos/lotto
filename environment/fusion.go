@@ -69,7 +69,7 @@ func (f *Fusion) LaunchCmdOptions(imageName string) []string {
 }
 
 func (f *Fusion) RunClientCmd(clientNum int, cmd string) (string, error) {
-	clientStr, err := f.Clients.getClientByInt(clientNum)
+	clientStr, err := f.Clients.GetClientByInt(clientNum)
 	if err != nil {
 		return "", fmt.Errorf("error getting client: %v", err)
 	}
@@ -78,7 +78,7 @@ func (f *Fusion) RunClientCmd(clientNum int, cmd string) (string, error) {
 
 func (f *Fusion) RunClientCmdScript(clientNum int, file string) ([]byte, error) {
 	logrus.Debugf("Running client script: %s. with: %s", file, f)
-	clientStr, err := f.Clients.getClientByInt(clientNum)
+	clientStr, err := f.Clients.GetClientByInt(clientNum)
 	if err != nil {
 		return nil, fmt.Errorf("error getting client: %v", err)
 	}

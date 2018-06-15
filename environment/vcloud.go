@@ -92,7 +92,7 @@ func (v *Vcloud) LaunchCmdOptions(imageName string) []string {
 }
 
 func (v *Vcloud) RunClientCmd(clientNum int, cmd string) (string, error) {
-	clientStr, err := v.Clients.getClientByInt(clientNum)
+	clientStr, err := v.Clients.GetClientByInt(clientNum)
 	if err != nil {
 		return "", fmt.Errorf("error getting client: %v", err)
 	}
@@ -104,7 +104,7 @@ func (v *Vcloud) RunClientCmd(clientNum int, cmd string) (string, error) {
 // to the running bash process
 func (v *Vcloud) RunClientCmdScript(clientNum int, file string) ([]byte, error) {
 	logrus.Debugf("Running client script: %s. with: %s", file, v)
-	clientStr, err := v.Clients.getClientByInt(clientNum)
+	clientStr, err := v.Clients.GetClientByInt(clientNum)
 	if err != nil {
 		return nil, fmt.Errorf("error getting client: %v", err)
 	}
