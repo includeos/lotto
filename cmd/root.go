@@ -39,6 +39,7 @@ var RootCmd = &cobra.Command{
 				logrus.Fatalf("Error setting up environment: %v", err)
 			}
 		}
+		logrus.Info("Verifying environment")
 		if err := environment.VerifyEnv(env); err != nil {
 			logrus.Fatalf("Error verifying env: %v", err)
 		}
