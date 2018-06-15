@@ -1,5 +1,19 @@
 {
   "Vcloud": {
+    "host": "",
+    "org": "",
+    "username": "",
+    "password": "",
+    "template": "",
+    "catalog": "",
+    "networkname": "",
+    "uplinkfile": "",
+    "sshclients": {
+      "client1": "",
+      "client2": "",
+      "client3": "",
+      "client4": ""
+    }
   },
   "Fusion": {
     "sshRemote": "user@10.100.0.10",
@@ -11,7 +25,6 @@
       "client3": "user@10.100.0.150",
       "client4": "user@10.100.0.160"
     }
-
   },
   "Openstack": {
   }

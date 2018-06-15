@@ -11,15 +11,14 @@ import (
 )
 
 type Vcloud struct {
-	Host         string `json:"host,omitempty"`
-	Org          string
-	Username     string
-	Password     string
-	TemplateName string
-	Catalog      string
-	NetworkName  string
-	SshRemote    string
-	UplinkFile   string
+	Host         string     `json:"host,omitempty"`
+	Org          string     `json:"org"`
+	Username     string     `json:"username"`
+	Password     string     `json:"password"`
+	TemplateName string     `json:"templatename"`
+	Catalog      string     `json:"catalog"`
+	NetworkName  string     `json:"networkname"`
+	UplinkFile   string     `json:"uplinkfile"`
 	Clients      SSHClients `json:"sshclients"`
 }
 

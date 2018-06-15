@@ -40,7 +40,7 @@ var RootCmd = &cobra.Command{
 			}
 		}
 		logrus.Info("Verifying environment")
-		if err := environment.VerifyEnv(env); err != nil {
+		if err = environment.VerifyEnv(env); err != nil {
 			logrus.Fatalf("Error verifying env: %v", err)
 		}
 

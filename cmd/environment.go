@@ -13,15 +13,15 @@ func newEnvironment(targetEnv string, settings *environment.EnvSettings) (enviro
 	switch env := strings.ToLower(targetEnv); env {
 	case "vcloud":
 		vcloud := &environment.Vcloud{
-			Host:         "",
-			Org:          "",
-			Username:     "",
-			Password:     "",
-			TemplateName: "",
-			Catalog:      "",
-			NetworkName:  "",
-			SshRemote:    "lotto-client1",
-			UplinkFile:   "vcloud-uplink.json",
+			Host:         settings.Vcloud.Host,
+			Org:          settings.Vcloud.Org,
+			Username:     settings.Vcloud.Username,
+			Password:     settings.Vcloud.Password,
+			TemplateName: settings.Vcloud.TemplateName,
+			Catalog:      settings.Vcloud.Catalog,
+			NetworkName:  settings.Vcloud.NetworkName,
+			UplinkFile:   settings.Vcloud.UplinkFile,
+			Clients:      settings.Vcloud.Clients,
 		}
 		return vcloud, nil
 	case "openstack":
