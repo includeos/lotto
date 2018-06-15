@@ -77,10 +77,10 @@ func (f *Fusion) RunClientCmd(clientNum int, cmd string) (string, error) {
 }
 
 func (f *Fusion) RunClientCmdScript(clientNum int, file string) ([]byte, error) {
-	logrus.Debugf("Running client script: %s. with: %s", file, f)
 	clientStr, err := f.Clients.GetClientByInt(clientNum)
 	if err != nil {
 		return nil, fmt.Errorf("error getting client: %v", err)
 	}
+	logrus.Debugf("Running client script: %s. with: %s", file, clientStr)
 	return runSSHScript(file, clientStr)
 }
