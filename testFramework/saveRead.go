@@ -27,22 +27,22 @@ func (t *TestConfig) SaveToDisk() error {
 	return nil
 }
 
+// ReadFromDisk takes a path and reads the testspec and returns a TestConfig
 func ReadFromDisk(testPath string) (*TestConfig, error) {
 	if err := verifyTestFiles(testPath); err != nil {
 		return nil, err
 	}
 	test := &TestConfig{}
-	testSpecFile := path.Join(testPath, "testspec.json")
-	file, err := ioutil.ReadFile(testSpecFile)
+	test.testPath = testPath
+	file, err := ioutil.ReadFile(path.Join(test.testPath, "testspec.json"))
 	if err != nil {
-		return test, fmt.Errorf("error reading test file %s: %v", testPath, err)
+		return test, fmt.Errorf("error reading test file %s: %v", test.testPath, err)
 	}
 	if err = json.Unmarshal(file, test); err != nil {
 		return test, fmt.Errorf("error decoding json: %v", err)
 	}
-	test.NaclFile = path.Join(testPath, test.NaclFile)
-	test.ClientCommandScript = path.Join(testPath, test.ClientCommandScript)
-
+	test.NaclFile = path.Join(test.testPath, test.NaclFile)
+	test.ClientCommandScript = path.Join(test.testPath, test.ClientCommandScript)
 	return test, nil
 }
 

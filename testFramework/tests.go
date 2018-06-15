@@ -4,18 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/mnordsletten/lotto/environment"
 	"github.com/sirupsen/logrus"
 )
 
 type TestConfig struct {
-	ID                  string `json:"id"`
-	NaclFile            string `json:"naclfile"`
-	ClientCommandScript string `json:"clientcommandscript"`
-	Level1              int    `json:"level1"`
-	Level2              int    `json:"level2"`
-	Level3              int    `json:"level3"`
+	ID                  string                 `json:"id"`
+	NaclFile            string                 `json:"naclfile"`
+	ClientCommandScript string                 `json:"clientcommandscript"`
+	Setup               environment.SSHClients `json:"setup"`
+	Level1              int                    `json:"level1"`
+	Level2              int                    `json:"level2"`
+	Level3              int                    `json:"level3"`
+	testPath            string
 }
 
 type TestResult struct {
@@ -31,7 +34,11 @@ func (tr TestResult) String() string {
 	return fmt.Sprintf("Sent: %d, Received: %d Percentage: %.1f%%", tr.Sent, tr.Received, tr.SuccessPercentage)
 }
 
+// RunTest runs the clientCmdScript on client1 level number of times and returns a TestResult
 func (t *TestConfig) RunTest(level int, env environment.Environment) TestResult {
+	if err := t.prepareTest(env); err != nil {
+		logrus.Fatalf("error preparing test: %v", err)
+	}
 	var results []TestResult
 	for i := 0; i < level; i++ {
 		testOutput, err := env.RunClientCmdScript(1, t.ClientCommandScript)
@@ -48,6 +55,21 @@ func (t *TestConfig) RunTest(level int, env environment.Environment) TestResult 
 		results = append(results, testResult)
 	}
 	return combineTestResults(results)
+}
+
+func (t *TestConfig) prepareTest(env environment.Environment) error {
+	t.Setup.RunFuncOnAllClients(func(input string) string {
+		return path.Join(t.testPath, input)
+	})
+	t.Setup.PopulateSlice()
+	for i, script := range t.Setup.ClientSlice {
+		if script != "" {
+			if output, err := env.RunClientCmdScript(i+1, script); err != nil {
+				return fmt.Errorf("Could not run ClientCmdScript: %s: %v", string(output), err)
+			}
+		}
+	}
+	return nil
 }
 
 func combineTestResults(results []TestResult) TestResult {
