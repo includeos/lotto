@@ -41,6 +41,7 @@ rm -r lotto_client_4/* 2&>1 > /dev/null || true
 # Ensure only 1 interface
 printf "#### %s\n" "Setting up client1 before copy, enter password 123 if prompted"
 "$vmrun" start $l1 nogui > /dev/null || echo $l1 is already running
+# Copy ssh key
 until ip=$("$vmrun" getGuestIPAddress $l1)
 do
   "$vmrun" -gu $uname -gp $pwd runScriptInGuest $l1 /bin/bash "echo hey"
@@ -52,6 +53,8 @@ do
   sleep 1
 done
 ssh-copy-id -i ~/.ssh/id_rsa.pub user@$ip
+# Install docker
+"$vmrun" -gu $uname -gp $pwd runScriptInGuest $l1 /bin/bash 'curl -fsSL get.docker.com -o get-docker.sh; sh get-docker.sh; sudo usermod -aG docker user'
 "$vmrun" stop $l1
 while [[ $("$vmrun" listNetworkAdapters lotto_client_1/lotto_client_1.vmx | wc -l) -gt 3 ]]; do
   "$vmrun" deleteNetworkAdapter $l1 1
