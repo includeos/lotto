@@ -7,12 +7,12 @@
     "template": "",
     "catalog": "",
     "networkname": "",
-    "uplinkfile": "",
+    "uplinkfile": "vcloud-uplink.json",
     "sshclients": {
-      "client1": "",
-      "client2": "",
-      "client3": "",
-      "client4": ""
+      "client1": "lotto-client1",
+      "client2": "lotto-client2",
+      "client3": "lotto-client3",
+      "client4": "lotto-client4"
     }
   },
   "Fusion": {
