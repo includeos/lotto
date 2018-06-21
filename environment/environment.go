@@ -81,8 +81,8 @@ type Environment interface {
 }
 
 func VerifyEnv(env Environment) error {
-	net1Route := "10.100.0.128/25 via 10.100.0.30 dev ens38"
-	net2Route := "10.100.0.0/25 via 10.100.0.140 dev ens38"
+	net1Route := "10.100.0.128/25 via 10.100.0.30 dev $(ip route list scope link | awk '/10.100.0./ {print $3}')"
+	net2Route := "10.100.0.0/25 via 10.100.0.140 dev $(ip route list scope link | awk '/10.100.0./ {print $3}')"
 	if err := verifyRoute(env, net1Route, 1); err != nil {
 		return err
 	}
