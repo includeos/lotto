@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"time"
 
 	"github.com/mnordsletten/lotto/environment"
 	"github.com/sirupsen/logrus"
@@ -22,6 +23,8 @@ type TestConfig struct {
 }
 
 type TestResult struct {
+	Time              string  // Time that test results were recorded
+	Name              string  // Name of test
 	Sent              int     // Total number of requests sent
 	Received          int     // Total number of replies received
 	Rate              float32 // Requests pr second
@@ -47,6 +50,8 @@ func (t *TestConfig) RunTest(level int, env environment.Environment) TestResult 
 			os.Exit(1)
 		}
 		var testResult TestResult
+		testResult.Time = time.Now().Format(time.RFC3339)
+		testResult.Name = path.Base(t.testPath)
 		if err = json.Unmarshal(testOutput, &testResult); err != nil {
 			logrus.Fatalf("could not parse testResults: %v", err)
 		}
@@ -75,10 +80,12 @@ func (t *TestConfig) prepareTest(env environment.Environment) error {
 func combineTestResults(results []TestResult) TestResult {
 	end := TestResult{}
 	for _, result := range results {
+		end.Name = result.Name
 		end.Sent += result.Sent
 		end.Received += result.Received
 		end.Rate += result.Rate
 		end.SuccessPercentage = float32(end.Received) / float32(end.Sent) * 100
 	}
+	end.Time = time.Now().Format(time.RFC3339)
 	return end
 }
