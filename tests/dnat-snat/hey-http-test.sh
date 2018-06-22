@@ -1,16 +1,19 @@
-# Nping arp
-# Script used for arp pinging the instance at a fixed rate
+# hey http testing
+# Script used for performing http requests
 # Returns rate and average response time
 
+# Input values to cmd
 sent=10000
-#rate=100 # Requests pr second
 concurrency=200
-#cmdOut=$(sudo nping --arp -q --count $sent --rate $rate 10.100.0.30)
 cmdOut=$(docker run --rm rcmorano/docker-hey -n $sent -c $concurrency http://10.100.0.30:1500)
-#received=$(printf "%s" "$cmdOut" | grep Rcvd | cut -d ' ' -f 8)
-received=$(printf "%s" "$cmdOut" | awk '/responses/ {print $2}')
-rate=$(printf "%s" "$cmdOut" | awk '/Requests\/sec/ {print $2}')
-avg=$(printf "%s" "$cmdOut" | awk '/Average/ {print $2}')
+
+# Parse output, important to set a default value if the command over fails
+received=$(printf "%s" "$cmdOut" | awk '/responses/ {print $2}' )
+if [ -z $received ]; then received=0; fi
+rate=$(printf "%s" "$cmdOut" | awk '/Requests\/sec/ {print $2}' )
+if [ -z $rate ]; then rate=0; fi
+avg=$(printf "%s" "$cmdOut" | awk '/Average/ {print $2}' )
+if [ -z $avg ]; then avg=0; fi
 
 jq  --arg dataSent $sent \
     --arg dataReceived $received \
