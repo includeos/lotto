@@ -14,6 +14,7 @@ var (
 	setUpEnv         bool
 	forceNewStarbase bool
 	skipRebuildTest  bool
+	skipVerifyEnv    bool
 	numRuns          int
 
 	mothershipConfigPath string
@@ -39,9 +40,11 @@ var RootCmd = &cobra.Command{
 				logrus.Fatalf("Error setting up environment: %v", err)
 			}
 		}
-		logrus.Info("Verifying environment")
-		if err = environment.VerifyEnv(env); err != nil {
-			logrus.Fatalf("Error verifying env: %v", err)
+		if !skipVerifyEnv {
+			logrus.Info("Verifying environment")
+			if err = environment.VerifyEnv(env); err != nil {
+				logrus.Fatalf("Error verifying env: %v", err)
+			}
 		}
 
 		// Mothership setup
@@ -75,6 +78,9 @@ var RootCmd = &cobra.Command{
 		// Run client command
 		result := t.RunTest(numRuns, env)
 		logrus.Info(result)
+		i := mother.CheckInstanceHealth()
+		logrus.Infof("Health: %+v", i)
+		mothership.ConvertHealthToPrintableOutput(i, "filename")
 	},
 }
 
@@ -84,6 +90,7 @@ func init() {
 	RootCmd.Flags().BoolVar(&setUpEnv, "create-env", false, "set up environment")
 	RootCmd.Flags().BoolVar(&forceNewStarbase, "force-new-starbase", false, "create a new starbase")
 	RootCmd.Flags().BoolVar(&skipRebuildTest, "skipRebuildTest", false, "push new nacl and rebuild before deploying")
+	RootCmd.Flags().BoolVar(&skipVerifyEnv, "skipVerifyEnv", false, "skip environment verification")
 	RootCmd.Flags().IntVarP(&numRuns, "numTestRuns", "n", 1, "number of test iterations to run")
 
 	RootCmd.Flags().StringVar(&mothershipConfigPath, "mship-config", "config-mothership.json", "Mothership config file")
