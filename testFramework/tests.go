@@ -63,7 +63,7 @@ func (t *TestConfig) RunTest(level int, env environment.Environment) TestResult 
 
 func (t *TestConfig) prepareTest(env environment.Environment) error {
 	t.Setup.RunFuncOnAllClients(func(input string) string {
-		return path.Join(t.testPath, input)
+		return path.Join(t.testPath, path.Base(input))
 	})
 	t.Setup.PopulateSlice()
 	for i, script := range t.Setup.ClientSlice {
