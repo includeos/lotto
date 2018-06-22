@@ -3,10 +3,8 @@ package mothership
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"time"
 
-	"github.com/mnordsletten/lotto/util"
 	"github.com/sirupsen/logrus"
 )
 
@@ -41,27 +39,6 @@ func (m *Mothership) CheckInstanceHealth() InstanceHealth {
 		}
 	}
 	return i
-}
-
-func ConvertHealthToPrintableOutput(iHealth InstanceHealth, filename string) error {
-	s := reflect.ValueOf(&iHealth).Elem()
-	typeOfI := s.Type()
-
-	x := make([][]string, 2)
-	for i := 0; i < s.NumField(); i++ {
-		// Headers first
-		x[0] = append(x[0], typeOfI.Field(i).Name)
-
-		// Then content
-		f := s.Field(i)
-		content := fmt.Sprintf("%v", f.Interface())
-		x[1] = append(x[1], content)
-	}
-	if err := util.OutputWriter(x, filename); err != nil {
-		logrus.Warningf("could not write instance health: %v", err)
-	}
-
-	return nil
 }
 
 func (m *Mothership) getInstanceInfo(id string) (InstanceHealth, error) {

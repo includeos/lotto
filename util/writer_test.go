@@ -15,7 +15,7 @@ func TestOutputWriter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := OutputWriter(tt.content, tt.filePath); err != nil {
+			if err := outputWriter(tt.content, tt.filePath); err != nil {
 				t.Fatal("error writing output", err)
 			}
 		})
