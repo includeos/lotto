@@ -17,8 +17,11 @@ type InstanceHealth struct {
 	PanicContent string
 }
 
+func (i InstanceHealth) String() string {
+	return fmt.Sprintf("Online: %t, IOSVersion: %s, NewPanics: %d %s", i.Online, i.IosVersion, i.NewPanics, i.PanicContent)
+}
+
 func (m *Mothership) CheckInstanceHealth() InstanceHealth {
-	m.alias = "a"
 	i, err := m.getInstanceInfo(m.alias)
 	if err != nil {
 		logrus.Warningf("Could not get instance info: %v", err)

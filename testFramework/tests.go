@@ -34,7 +34,7 @@ type TestResult struct {
 }
 
 func (tr TestResult) String() string {
-	return fmt.Sprintf("Sent: %d, Received: %d Percentage: %.1f%%", tr.Sent, tr.Received, tr.SuccessPercentage)
+	return fmt.Sprintf("Name: %s, Sent: %d, Received: %d Percentage: %.1f%%", tr.Name, tr.Sent, tr.Received, tr.SuccessPercentage)
 }
 
 // RunTest runs the clientCmdScript on client1 level number of times and returns a TestResult
@@ -56,7 +56,6 @@ func (t *TestConfig) RunTest(level int, env environment.Environment) TestResult 
 			logrus.Fatalf("could not parse testResults: %v", err)
 		}
 		testResult.SuccessPercentage = float32(testResult.Received) / float32(testResult.Sent) * 100
-		logrus.Infof("%s", testResult)
 		results = append(results, testResult)
 	}
 	return combineTestResults(results)
