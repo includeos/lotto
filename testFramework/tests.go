@@ -3,12 +3,10 @@ package testFramework
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"path"
 	"time"
 
 	"github.com/mnordsletten/lotto/environment"
-	"github.com/sirupsen/logrus"
 )
 
 type TestConfig struct {
@@ -38,27 +36,26 @@ func (tr TestResult) String() string {
 }
 
 // RunTest runs the clientCmdScript on client1 level number of times and returns a TestResult
-func (t *TestConfig) RunTest(level int, env environment.Environment) TestResult {
+func (t *TestConfig) RunTest(level int, env environment.Environment) (TestResult, error) {
 	if err := t.prepareTest(env); err != nil {
-		logrus.Fatalf("error preparing test: %v", err)
+		return TestResult{}, fmt.Errorf("error preparing test: %v", err)
 	}
 	var results []TestResult
 	for i := 0; i < level; i++ {
 		testOutput, err := env.RunClientCmdScript(1, t.ClientCommandScript)
 		if err != nil {
-			logrus.Fatalf("could not run client command script: %v", err)
-			os.Exit(1)
+			return TestResult{}, fmt.Errorf("could not run client command script: %v", err)
 		}
 		var testResult TestResult
 		testResult.Time = time.Now().Format(time.RFC3339)
 		testResult.Name = path.Base(t.testPath)
 		if err = json.Unmarshal(testOutput, &testResult); err != nil {
-			logrus.Fatalf("could not parse testResults: %v", err)
+			return testResult, fmt.Errorf("could not parse testResults: %v", err)
 		}
 		testResult.SuccessPercentage = float32(testResult.Received) / float32(testResult.Sent) * 100
 		results = append(results, testResult)
 	}
-	return combineTestResults(results)
+	return combineTestResults(results), nil
 }
 
 func (t *TestConfig) prepareTest(env environment.Environment) error {

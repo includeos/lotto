@@ -83,7 +83,10 @@ var RootCmd = &cobra.Command{
 					}
 				}
 				// Run client command
-				result := test.RunTest(numRuns, env)
+				result, err := test.RunTest(numRuns, env)
+				if err != nil {
+					logrus.Warningf("error running test %v", err)
+				}
 				logrus.Info(result)
 				util.StructToCsvOutput(result, "testResults")
 				health := mother.CheckInstanceHealth()
