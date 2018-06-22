@@ -18,3 +18,4 @@ mothership-bin
 local_instances/
 clean-starbase*
 !clean-starbase.nacl
+*.csv
