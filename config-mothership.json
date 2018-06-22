@@ -1,9 +1,22 @@
 {
-  "host": "localhost",
-  "port": 8080,
-  "notls": false,
-  "username": "admin",
-  "password": "123",
-  "verifytls": false,
-  "binarypath": "mothership"
+  "public": {
+    "host": "",
+    "port": 8080,
+    "notls": false,
+    "username": "",
+    "password": "",
+    "verifytls": false,
+    "binarypath": "mothership-binary-path"
+  },
+  "local": {
+    "host": "localhost",
+    "port": 8080,
+    "notls": false,
+    "username": "admin",
+    "password": "123",
+    "verifytls": false,
+    "binarypath": "mothership-binary-path"
+  },
+  "MyRandomName": {
+  },
 }

@@ -5,6 +5,7 @@ import (
 )
 
 type Openstack struct {
+	Mothership string
 }
 
 func NewOpenstack() *Openstack {
@@ -44,4 +45,8 @@ func (o *Openstack) RunClientCmd(clientNum int, cmd string) (string, error) {
 
 func (o *Openstack) RunClientCmdScript(clientNum int, file string) ([]byte, error) {
 	return nil, nil
+}
+
+func (o *Openstack) GetMothershipName() string {
+	return o.Mothership
 }

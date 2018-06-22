@@ -20,6 +20,7 @@ type Vcloud struct {
 	NetworkName  string     `json:"networkname"`
 	UplinkFile   string     `json:"uplinkfile"`
 	Clients      SSHClients `json:"sshclients"`
+	Mothership   string     `json:"mothership"`
 }
 
 func (v *Vcloud) Name() string {
@@ -108,4 +109,8 @@ func (v *Vcloud) RunClientCmdScript(clientNum int, file string) ([]byte, error) 
 		return nil, fmt.Errorf("error getting client: %v", err)
 	}
 	return runSSHScript(file, clientStr)
+}
+
+func (v *Vcloud) GetMothershipName() string {
+	return v.Mothership
 }

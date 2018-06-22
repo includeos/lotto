@@ -78,6 +78,7 @@ type Environment interface {
 	LaunchCmdOptions(string) []string
 	RunClientCmd(clientNum int, cmd string) (string, error)
 	RunClientCmdScript(clientNum int, file string) ([]byte, error)
+	GetMothershipName() string
 }
 
 func VerifyEnv(env Environment) error {

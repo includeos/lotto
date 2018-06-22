@@ -10,22 +10,24 @@ import (
 )
 
 func mothershipFromConfig(filename string, env environment.Environment) (*mothership.Mothership, error) {
-	m := &mothership.Mothership{}
 	file, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return m, fmt.Errorf("error reading mothership config: %v", err)
+		return nil, fmt.Errorf("error reading mothership config: %v", err)
 	}
-	if err = json.Unmarshal(file, m); err != nil {
-		return m, fmt.Errorf("error decoding json: %v", err)
+	allMotherships := map[string]mothership.Mothership{}
+	if err = json.Unmarshal(file, &allMotherships); err != nil {
+		return nil, fmt.Errorf("error decoding json: %v", err)
 	}
-	m, err = mothership.NewMothership(
-		m.Host,
-		m.Username,
-		m.Password,
-		m.Binary,
-		m.Port,
-		m.NoTLS,
-		m.VerifyTLS,
+	moth := allMotherships[env.GetMothershipName()]
+
+	m, err := mothership.NewMothership(
+		moth.Host,
+		moth.Username,
+		moth.Password,
+		moth.Binary,
+		moth.Port,
+		moth.NoTLS,
+		moth.VerifyTLS,
 		env)
 	if err != nil {
 		return m, fmt.Errorf("could not create new mothership: %v", err)

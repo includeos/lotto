@@ -13,13 +13,15 @@ type Fusion struct {
 	Clients    SSHClients `json:"sshclients"`
 	UplinkFile string     `json:"uplinkFile"`
 	VmspecPath string     `json:"vmSpecPath"`
+	Mothership string     `json:"mothership"`
 }
 
-func NewFusion(clients SSHClients, uplinkFilePath, vmSpecPath string) *Fusion {
+func NewFusion(clients SSHClients, uplinkFilePath, vmSpecPath, mothership string) *Fusion {
 	f := &Fusion{}
 	f.Clients = clients
 	f.UplinkFile = uplinkFilePath
 	f.VmspecPath = vmSpecPath
+	f.Mothership = mothership
 	// TODO: Add checks for all of these, that they are supplied and that they work
 	return f
 }
@@ -83,4 +85,8 @@ func (f *Fusion) RunClientCmdScript(clientNum int, file string) ([]byte, error) 
 	}
 	logrus.Debugf("Running client script: %s. with: %s", file, clientStr)
 	return runSSHScript(file, clientStr)
+}
+
+func (f *Fusion) GetMothershipName() string {
+	return f.Mothership
 }

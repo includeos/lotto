@@ -22,6 +22,7 @@ func newEnvironment(targetEnv string, settings *environment.EnvSettings) (enviro
 			NetworkName:  settings.Vcloud.NetworkName,
 			UplinkFile:   settings.Vcloud.UplinkFile,
 			Clients:      settings.Vcloud.Clients,
+			Mothership:   settings.Vcloud.Mothership,
 		}
 		return vcloud, nil
 	case "openstack":
@@ -30,7 +31,8 @@ func newEnvironment(targetEnv string, settings *environment.EnvSettings) (enviro
 		return environment.NewFusion(
 			settings.Fusion.Clients,
 			settings.Fusion.UplinkFile,
-			settings.Fusion.VmspecPath), nil
+			settings.Fusion.VmspecPath,
+			settings.Fusion.Mothership), nil
 	default:
 		return nil, fmt.Errorf("%s not found", targetEnv)
 	}
