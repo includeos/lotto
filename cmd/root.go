@@ -4,6 +4,7 @@ import (
 	"github.com/mnordsletten/lotto/environment"
 	"github.com/mnordsletten/lotto/mothership"
 	"github.com/mnordsletten/lotto/testFramework"
+	"github.com/mnordsletten/lotto/util"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -16,15 +17,16 @@ var (
 	skipRebuildTest  bool
 	skipVerifyEnv    bool
 	numRuns          int
+	loops            int
 
 	mothershipConfigPath string
 	envConfigPath        string
 )
 
 var RootCmd = &cobra.Command{
-	Use:   "lotto TEST-FOLDER-PATH",
-	Short: "Run a test by specifying which test folder to run",
-	Args:  cobra.ExactArgs(1),
+	Use:   "lotto TEST-FOLDER-PATH [TEST-FOLDER-PATH...]",
+	Short: "Run tests by specifying test folders",
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if verboseLogging {
 			logrus.SetLevel(logrus.DebugLevel)
@@ -64,23 +66,31 @@ var RootCmd = &cobra.Command{
 		}
 
 		// Test setup
-		t, err := testFramework.ReadFromDisk(args[0])
-		if err != nil {
-			logrus.Fatalf("Could not read test spec: %v", err)
-		}
-		// Boot NaCl service to starbase
-		if !skipRebuildTest {
-			if err = mother.DeployNacl(t.NaclFile); err != nil {
-				logrus.Fatalf("Could not deploy: %v", err)
+		tests := make([]*testFramework.TestConfig, len(args))
+		for i, arg := range args {
+			tests[i], err = testFramework.ReadFromDisk(arg)
+			if err != nil {
+				logrus.Fatalf("Could not read test spec: %v", err)
 			}
 		}
-
-		// Run client command
-		result := t.RunTest(numRuns, env)
-		logrus.Info(result)
-		i := mother.CheckInstanceHealth()
-		logrus.Infof("Health: %+v", i)
-		mothership.ConvertHealthToPrintableOutput(i, "filename")
+		for loopIndex := 0; loopIndex < loops || loops == 0; loopIndex++ {
+			logrus.Infof("Test loop nr: %d, numRuns: %d", loopIndex+1, numRuns)
+			for _, test := range tests {
+				// Boot NaCl service to starbase
+				if !skipRebuildTest {
+					if err = mother.DeployNacl(test.NaclFile); err != nil {
+						logrus.Fatalf("Could not deploy: %v", err)
+					}
+				}
+				// Run client command
+				result := test.RunTest(numRuns, env)
+				logrus.Info(result)
+				util.StructToCsvOutput(result, "testResults")
+				health := mother.CheckInstanceHealth()
+				logrus.Info(health)
+				util.StructToCsvOutput(health, "instanceHealth")
+			}
+		}
 	},
 }
 
@@ -91,7 +101,8 @@ func init() {
 	RootCmd.Flags().BoolVar(&forceNewStarbase, "force-new-starbase", false, "create a new starbase")
 	RootCmd.Flags().BoolVar(&skipRebuildTest, "skipRebuildTest", false, "push new nacl and rebuild before deploying")
 	RootCmd.Flags().BoolVar(&skipVerifyEnv, "skipVerifyEnv", false, "skip environment verification")
-	RootCmd.Flags().IntVarP(&numRuns, "numTestRuns", "n", 1, "number of test iterations to run")
+	RootCmd.Flags().IntVarP(&numRuns, "numTestRuns", "n", 1, "number of test iterations to run for each test, 0 means infinite")
+	RootCmd.Flags().IntVarP(&loops, "loops", "l", 1, "number of loops for all tests to run, 0 means infinite")
 
 	RootCmd.Flags().StringVar(&mothershipConfigPath, "mship-config", "config-mothership.json", "Mothership config file")
 	RootCmd.Flags().StringVar(&envConfigPath, "env-config", "config-environment.json", "Environments config file")
