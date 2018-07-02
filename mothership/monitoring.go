@@ -9,16 +9,16 @@ import (
 )
 
 type InstanceHealth struct {
-	Online       bool   `json:"Online"`
-	TotalPanics  int    `json:"Panics"`
-	IosVersion   string `json:"Version"`
+	Status       string `json:"status"`
+	TotalPanics  int    `json:"panics"`
+	IosVersion   string `json:"version"`
 	Time         string
 	NewPanics    int
 	PanicContent string
 }
 
 func (i InstanceHealth) String() string {
-	return fmt.Sprintf("Online: %t, IOSVersion: %s, NewPanics: %d %s", i.Online, i.IosVersion, i.NewPanics, i.PanicContent)
+	return fmt.Sprintf("Status: %s, IOSVersion: %s, NewPanics: %d %s", i.Status, i.IosVersion, i.NewPanics, i.PanicContent)
 }
 
 func (m *Mothership) CheckInstanceHealth() InstanceHealth {

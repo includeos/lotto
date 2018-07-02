@@ -56,7 +56,7 @@ var RootCmd = &cobra.Command{
 			logrus.Fatalf("Could not set up Mothership: %v", err)
 		}
 
-		// Only create a new starbase if requested, or there is no online starbase to use
+		// Only create a new starbase if requested, or there is no connected starbase to use
 		if forceNewStarbase || !mother.CheckStarbaseIDInUse() {
 			logrus.Infof("Launching a new clean Starbase")
 			// Push nacl, build and download clean starbase image
