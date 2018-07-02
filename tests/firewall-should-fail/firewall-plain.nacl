@@ -1,0 +1,46 @@
+Iface outside {
+    index: 0,
+    address: 10.100.0.30,
+    netmask: 255.255.255.128,
+    gateway: 10.100.0.1
+}
+Iface inside {
+    index: 1,
+    address: 10.100.0.140,
+    netmask: 255.255.255.128,
+    prerouting: inside_filter,
+    postrouting: inside_filter
+}
+
+Gateway gw [
+    {
+        net: 10.100.0.0,
+        netmask: 255.255.255.128,
+        iface: outside
+    },
+    {
+        net: 10.100.0.128,
+        netmask: 255.255.255.128,
+        iface: inside
+    },
+    {
+        net: 0.0.0.0,
+        netmask: 0.0.0.0,
+        iface: outside
+    }
+]
+
+accepted_destinations: [
+    10.100.0.10,
+    10.100.0.150
+]
+
+Filter::IP inside_filter {
+    if (ip.daddr in accepted_destinations) {
+        # syslog(INFO, "Accepting packet going to ", ip.daddr)
+        accept
+    }
+
+    # syslog(INFO, "Dropping packet going to ", ip.daddr)
+    drop
+}

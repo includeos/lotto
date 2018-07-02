@@ -1,0 +1,59 @@
+Iface outside {
+    index: 0,
+    address: 10.100.0.30,
+    netmask: 255.255.255.128,
+    gateway: 10.100.0.1,
+    prerouting: dnat
+}
+Iface inside {
+    index: 1,
+    address: 10.100.0.140,
+    netmask: 255.255.255.128,
+    postrouting: snat
+}
+
+Gateway gw {
+    outside_gw: {
+        net: 10.100.0.0,
+        netmask: 255.255.255.128,
+        iface: outside
+    },
+    inside_gw: {
+        net: 10.100.0.128,
+        netmask: 255.255.255.128,
+        iface: inside
+    },
+    default_gw: {
+        net: 0.0.0.0,
+        netmask: 0.0.0.0,
+        iface: outside
+    }
+}
+
+// Targets that are on the inside network. Not exposed to the outside.
+TARGETS: {
+    PORT: 8080,
+    TAR01: { IPADDR: 10.100.0.150, PORT:1500 },
+    TAR02: { IPADDR: 10.100.0.160, PORT:1600 }
+}
+
+Nat::IP dnat {
+    Nat::TCP {
+        if (ip.daddr == outside.address) {
+            if (tcp.dport == TARGETS.TAR01.PORT) {
+                dnat(TARGETS.TAR01.IPADDR, TARGETS.PORT)
+            }
+            if (tcp.dport == TARGETS.TAR02.PORT) {
+                dnat(TARGETS.TAR02.IPADDR, TARGETS.PORT)
+            }
+        }
+    }
+}
+
+Nat::IP snat {
+    Nat::TCP {
+        if (ip.daddr in TARGETS and tcp.dport == TARGETS.PORT) {
+            snat(inside.address)
+        }
+    }
+}
