@@ -82,7 +82,7 @@ func (m *Mothership) LaunchCleanStarbase(env environment.Environment) error {
 
 func (m *Mothership) CheckStarbaseIDInUse() bool {
 	type starbase struct {
-		Online bool
+		Status string `json:"status"`
 	}
 	request := fmt.Sprintf("inspect-instance %s -o json", m.alias)
 	response, err := m.bin(request)
@@ -93,11 +93,11 @@ func (m *Mothership) CheckStarbaseIDInUse() bool {
 	logrus.Infof("Mothership: starbase with alias: %s exists", m.alias)
 	var star starbase
 	if err := json.Unmarshal([]byte(response), &star); err != nil {
-		logrus.Debugf("could not check if starbase is online: %v", err)
+		logrus.Debugf("could not check if starbase is connected: %v", err)
 		return false
 	}
-	if !star.Online {
-		logrus.Infof("Mothership: starbase with alias: %s is offline", m.alias)
+	if star.Status != "connected" {
+		logrus.Infof("Mothership: starbase with alias: %s is disconnected", m.alias)
 		return false
 	}
 	return true
