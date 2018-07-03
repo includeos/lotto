@@ -1,0 +1,131 @@
+Iface outside {
+    index: 0,
+    address: 10.100.0.30,
+    netmask: 255.255.255.128,
+    gateway: 10.100.0.1,
+    prerouting: dnat
+}
+
+Iface inside {
+    index: 1,
+    address: 10.100.0.140,
+    netmask: 255.255.255.128,
+    prerouting: inside_filter,
+    postrouting: [ inside_filter, snat ]
+}
+
+Gateway gw [
+    {
+        net: 10.100.0.0,
+        netmask: 255.255.255.128,
+        iface: outside
+    },
+    {
+        net: 10.100.0.128,
+        netmask: 255.255.255.128,
+        iface: inside
+    },
+    {
+        net: 0.0.0.0,
+        netmask: 0.0.0.0,
+        iface: outside
+    }
+]
+
+// Targets that are on the inside network. Not exposed to the outside.
+TARGETS: {
+    PORT: 8080,
+    TAR01: { IPADDR: 10.100.0.150, PORT:1500 },
+    TAR02: { IPADDR: 10.100.0.160, PORT:1600 }
+}
+
+client1: {
+    address: 10.100.0.10
+}
+
+client4: {
+    address: 10.100.0.160,
+    port: 8080
+}
+
+accepted_destinations: [
+    client1.address,
+    client4.address,
+    inside.address
+]
+
+blacklisted_udp_daddrs: [
+    client1.address
+]
+
+open_tcp_ports: [
+    client4.port,
+    TARGETS.TAR02.PORT
+]
+
+open_udp_ports: [
+    5001-5005,
+    5010
+]
+
+Filter::IP inside_filter {
+    if (ip.daddr in accepted_destinations) {
+        # syslog(INFO, "Packet is going to an accepted destination so far (", ip.daddr, ")")
+
+        Filter::TCP {
+            # syslog(INFO, "Incoming TCP packet")
+
+            if (ip.daddr == client4.address and !(tcp.dport in open_tcp_ports)) {
+                # syslog(INFO, "Dropping TCP packet going to ", ip.daddr, ":", tcp.dport)
+                drop
+            }
+
+            # syslog(INFO, "Accepting TCP packet from ", ip.saddr, ":", tcp.sport, " going to ", ip.daddr, ":", tcp.dport)
+            accept
+        }
+
+        Filter::ICMP {
+            # syslog(INFO, "Accepting ICMP packet")
+            accept
+        }
+
+        Filter::UDP {
+            # syslog(INFO, "Incoming UDP packet")
+
+            if (ip.daddr in blacklisted_udp_daddrs or !(udp.dport in open_udp_ports)) {
+                # syslog(INFO, "Dropping UDP packet because daddr is blacklisted (", ip.daddr, ") or dport is not one of the open ports (", udp.dport, ")")
+                drop
+            }
+
+            # syslog(INFO, "Accepting UDP packet from ", ip.saddr, ":", udp.sport, " going to ", ip.daddr, ":", udp.dport)
+            accept
+        }
+    }
+
+    # syslog(INFO, "Dropping packet going to ", ip.daddr)
+    drop
+}
+
+Nat::IP dnat {
+    Nat::TCP {
+        if (ip.daddr == outside.address) {
+            if (tcp.dport == TARGETS.TAR01.PORT) {
+                # syslog(INFO, "dnat 1")
+                dnat(TARGETS.TAR01.IPADDR, TARGETS.PORT)
+            }
+            if (tcp.dport == TARGETS.TAR02.PORT) {
+                # syslog(INFO, "dnat 2")
+                dnat(TARGETS.TAR02.IPADDR, TARGETS.PORT)
+            }
+        }
+    }
+}
+
+Nat::IP snat {
+    Nat::TCP {
+        if (ip.daddr in TARGETS and tcp.dport == TARGETS.PORT) {
+            # syslog(INFO, "snat")
+            snat(inside.address)
+        }
+    }
+}
