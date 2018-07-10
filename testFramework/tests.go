@@ -17,6 +17,7 @@ type TestConfig struct {
 	Level1              int                    `json:"level1"`
 	Level2              int                    `json:"level2"`
 	Level3              int                    `json:"level3"`
+	ShouldFail          bool                   `json:"shouldfail"`
 	testPath            string
 }
 
@@ -29,10 +30,11 @@ type TestResult struct {
 	Avg               float32 // Average response time
 	SuccessPercentage float32 // Percentage of packets that pass
 	Raw               string  // Raw output from the command
+	ShouldFail        bool    // If the test expects to fail
 }
 
 func (tr TestResult) String() string {
-	return fmt.Sprintf("Name: %s, Sent: %d, Received: %d Percentage: %.1f%%", tr.Name, tr.Sent, tr.Received, tr.SuccessPercentage)
+	return fmt.Sprintf("Percentage: %.1f%%, sent/recv: %d/%d, ShouldFail: %t, Name: %s", tr.SuccessPercentage, tr.Sent, tr.Received, tr.ShouldFail, tr.Name)
 }
 
 // RunTest runs the clientCmdScript on client1 level number of times and returns a TestResult
@@ -52,7 +54,18 @@ func (t *TestConfig) RunTest(level int, env environment.Environment) (TestResult
 		if err = json.Unmarshal(testOutput, &testResult); err != nil {
 			return testResult, fmt.Errorf("could not parse testResults: %v", err)
 		}
-		testResult.SuccessPercentage = float32(testResult.Received) / float32(testResult.Sent) * 100
+
+		// Calculate success
+		testResult.ShouldFail = t.ShouldFail
+		if t.ShouldFail {
+			if testResult.Received > 0 {
+				testResult.SuccessPercentage = 0
+			} else {
+				testResult.SuccessPercentage = 100
+			}
+		} else {
+			testResult.SuccessPercentage = float32(testResult.Received) / float32(testResult.Sent) * 100
+		}
 		results = append(results, testResult)
 	}
 	return combineTestResults(results), nil
@@ -80,6 +93,15 @@ func combineTestResults(results []TestResult) TestResult {
 		end.Sent += result.Sent
 		end.Received += result.Received
 		end.Rate += result.Rate
+		end.ShouldFail = result.ShouldFail
+	}
+	if end.ShouldFail {
+		if end.Received > 0 {
+			end.SuccessPercentage = 0
+		} else {
+			end.SuccessPercentage = 100
+		}
+	} else {
 		end.SuccessPercentage = float32(end.Received) / float32(end.Sent) * 100
 	}
 	end.Time = time.Now().Format(time.RFC3339)
