@@ -19,6 +19,7 @@ type TestConfig struct {
 	Level2              int                    `json:"level2"`
 	Level3              int                    `json:"level3"`
 	ShouldFail          bool                   `json:"shouldfail"`
+	CustomServicePath   string                 `json:"customservicepath"`
 	testPath            string
 }
 
