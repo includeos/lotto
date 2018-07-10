@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mnordsletten/lotto/environment"
+	"github.com/sirupsen/logrus"
 )
 
 type TestConfig struct {
@@ -42,6 +43,7 @@ func (t *TestConfig) RunTest(level int, env environment.Environment) (TestResult
 	if err := t.prepareTest(env); err != nil {
 		return TestResult{}, fmt.Errorf("error preparing test: %v", err)
 	}
+	logrus.Infof("Starting test: %s", path.Base(t.testPath))
 	var results []TestResult
 	for i := 0; i < level; i++ {
 		testOutput, err := env.RunClientCmdScript(1, t.ClientCommandScript)
