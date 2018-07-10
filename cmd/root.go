@@ -76,10 +76,18 @@ var RootCmd = &cobra.Command{
 		for loopIndex := 0; loopIndex < loops || loops == 0; loopIndex++ {
 			logrus.Infof("Test loop nr: %d, numRuns: %d", loopIndex+1, numRuns)
 			for _, test := range tests {
-				// Boot NaCl service to starbase
+				// Boot NaCl service to starbase, only if NaclFile is specified
 				if !skipRebuildTest {
-					if err = mother.DeployNacl(test.NaclFile); err != nil {
-						logrus.Fatalf("Could not deploy: %v", err)
+					if test.NaclFile != "" {
+						if err = mother.DeployNacl(test.NaclFile); err != nil {
+							logrus.Fatalf("Could not deploy: %v", err)
+						}
+					}
+				}
+				// Build and deploy custom service if specified
+				if test.CustomServicePath != "" {
+					if err = util.BuildServiceInDocker(test.CustomServicePath); err != nil {
+						logrus.Fatalf("Could not build custom service: %v", err)
 					}
 				}
 				// Run client command
@@ -87,6 +95,7 @@ var RootCmd = &cobra.Command{
 				if err != nil {
 					logrus.Warningf("error running test %v", err)
 				}
+				// Process results
 				logrus.Info(result)
 				util.StructToCsvOutput(result, "testResults")
 				health := mother.CheckInstanceHealth()
