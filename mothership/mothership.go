@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mnordsletten/lotto/environment"
 	"github.com/mnordsletten/lotto/util"
@@ -16,16 +17,17 @@ const cleanStarbaseImage = "clean-starbase"
 // Mothership defines all options necessary to keep track of the mothership and
 // the starbase that is connected to it
 type Mothership struct {
-	Host         string `json:"host"`
-	Port         int    `json:"port"`
-	NoTLS        bool   `json:"notls,omitempty"`
-	Username     string `json:"username,omitempty"`
-	Password     string `json:"password,omitempty"`
-	VerifyTLS    bool   `json:"verifytls,omitempty"`
-	Binary       string `json:"binarypath,omitempty"`
-	uplinkname   string
-	alias        string
-	lastBuildTag string
+	Host          string `json:"host"`
+	Port          int    `json:"port"`
+	NoTLS         bool   `json:"notls,omitempty"`
+	Username      string `json:"username,omitempty"`
+	Password      string `json:"password,omitempty"`
+	VerifyTLS     bool   `json:"verifytls,omitempty"`
+	Binary        string `json:"binarypath,omitempty"`
+	uplinkname    string
+	alias         string
+	lastBuildTag  string
+	lastCheckTime time.Time
 }
 
 // NewMothership is used to generate a Mothership struct.
@@ -43,6 +45,9 @@ func NewMothership(host, username, password, binary string, port int, notls, ver
 	m.uplinkname = uplinkInfo.Name
 	m.alias = fmt.Sprintf("lotto-%s", m.Username)
 	logrus.Infof("Starbase alias to use: %s", m.alias)
+
+	// lastCheckTime is used to know when the testing started
+	m.lastCheckTime = time.Now()
 	return m, nil
 }
 

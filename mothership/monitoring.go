@@ -3,6 +3,7 @@ package mothership
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -13,12 +14,11 @@ type InstanceHealth struct {
 	TotalPanics  int    `json:"panics"`
 	IosVersion   string `json:"version"`
 	Time         string
-	NewPanics    int
 	PanicContent string
 }
 
 func (i InstanceHealth) String() string {
-	return fmt.Sprintf("Status: %s, IOSVersion: %s, NewPanics: %d %s", i.Status, i.IosVersion, i.NewPanics, i.PanicContent)
+	return fmt.Sprintf("Status: %s, IOSVersion: %s, %s", i.Status, i.IosVersion, i.PanicContent)
 }
 
 func (m *Mothership) CheckInstanceHealth() InstanceHealth {
@@ -34,11 +34,11 @@ func (m *Mothership) CheckInstanceHealth() InstanceHealth {
 		return i
 	}
 	logrus.Debugf("All crashes: %v", crashIDs)
-	i.NewPanics = len(crashIDs)
-	if len(crashIDs) > 0 {
-		i.PanicContent, err = m.getLatestCrashOutput(crashIDs)
+	if newCrash := m.getNewestCrashID(crashIDs); newCrash != "" {
+		i.PanicContent, err = m.getSingleCrashOutput(newCrash)
 		if err != nil {
-			logrus.Warningf("Could not get panic output: %v", err)
+			logrus.Warningf("could not get crash output: %v", err)
+			return i
 		}
 	}
 	return i
@@ -60,20 +60,27 @@ func (m *Mothership) getInstanceInfo(id string) (InstanceHealth, error) {
 	return i, nil
 }
 
-func (m *Mothership) getLatestCrashOutput(crashIDs []string) (string, error) {
-	logrus.Debugf("Getting latest panic output")
-
-	latestCrash := crashIDs[len(crashIDs)-1]
-	logrus.Debugf("latest crashID: %s", latestCrash)
-	crashContent, err := m.getSingleCrashOutput(latestCrash)
+// getNewestCrashID returns the crashID of the crashes that are new
+func (m *Mothership) getNewestCrashID(crashIDs []string) string {
+	defer func() {
+		m.lastCheckTime = time.Now()
+	}()
+	latestCrashID := crashIDs[len(crashIDs)-1]
+	latestCrash := strings.TrimLeft(latestCrashID, "panic_")
+	latestCrash = strings.TrimRight(latestCrash, ".txt")
+	latestCrashTime, err := time.Parse(time.RFC3339, latestCrash)
 	if err != nil {
-		logrus.Warningf("could not get crash output for %s: %v", latestCrash, err)
+		logrus.Warningf("could not parse panic time %s: %v", latestCrash, err)
+		return ""
 	}
-
-	m.deleteCrashes(crashIDs)
-	return crashContent, nil
+	logrus.Debugf("latest crashID: %s", latestCrash)
+	if latestCrashTime.Before(m.lastCheckTime) {
+		return ""
+	}
+	return latestCrashID
 }
 
+// returns the full list of the names of all crash reports
 func (m *Mothership) getAllCrashesArray() ([]string, error) {
 	type crashes []string
 	var c crashes
@@ -95,14 +102,4 @@ func (m *Mothership) getSingleCrashOutput(crashID string) (string, error) {
 		return "", err
 	}
 	return output, nil
-}
-
-func (m *Mothership) deleteCrashes(crashNames []string) {
-	for _, crashID := range crashNames {
-		request := fmt.Sprintf("delete-crash %s %s", m.alias, crashID)
-		_, err := m.bin(request)
-		if err != nil {
-			logrus.Warningf("could not delete crash %s: %v", crashID, err)
-		}
-	}
 }
