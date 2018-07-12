@@ -34,11 +34,13 @@ func (m *Mothership) CheckInstanceHealth() InstanceHealth {
 		return i
 	}
 	logrus.Debugf("All crashes: %v", crashIDs)
-	if newCrash := m.getNewestCrashID(crashIDs); newCrash != "" {
-		i.PanicContent, err = m.getSingleCrashOutput(newCrash)
-		if err != nil {
-			logrus.Warningf("could not get crash output: %v", err)
-			return i
+	if len(crashIDs) > 0 {
+		if newCrash := m.getNewestCrashID(crashIDs); newCrash != "" {
+			i.PanicContent, err = m.getSingleCrashOutput(newCrash)
+			if err != nil {
+				logrus.Warningf("could not get crash output: %v", err)
+				return i
+			}
 		}
 	}
 	return i
