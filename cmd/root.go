@@ -104,7 +104,7 @@ func init() {
 	RootCmd.Flags().BoolVar(&forceNewStarbase, "force-new-starbase", false, "create a new starbase")
 	RootCmd.Flags().BoolVar(&skipRebuildTest, "skipRebuildTest", false, "push new nacl and rebuild before deploying")
 	RootCmd.Flags().BoolVar(&skipVerifyEnv, "skipVerifyEnv", false, "skip environment verification")
-	RootCmd.Flags().IntVarP(&numRuns, "numTestRuns", "n", 1, "number of test iterations to run for each test, 0 means infinite")
+	RootCmd.Flags().IntVarP(&numRuns, "numTestRuns", "n", 1, "number of test iterations to run for each test")
 	RootCmd.Flags().IntVarP(&loops, "loops", "l", 1, "number of loops for all tests to run, 0 means infinite")
 
 	RootCmd.Flags().StringVar(&mothershipConfigPath, "mship-config", "config-mothership.json", "Mothership config file")
