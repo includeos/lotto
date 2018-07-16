@@ -129,3 +129,13 @@ Nat::IP snat {
         }
     }
 }
+
+Timer t {
+    interval: 30,
+    data: [
+        timestamp,
+        memory,
+        cpu,
+        stack-sampling
+    ]
+}
