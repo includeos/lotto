@@ -70,7 +70,7 @@ func (m *Mothership) getNewestPanicID(panicIDs []string) string {
 	latestPanicID := panicIDs[len(panicIDs)-1]
 	latestPanic := strings.TrimLeft(latestPanicID, "panic_")
 	latestPanic = strings.TrimRight(latestPanic, ".txt")
-	latestPanicTime, err := time.Parse(time.RFC3339, latestPanic)
+	latestPanicTime, err := time.Parse("2006-01-02T15:04:05.000-07:00", latestPanic)
 	if err != nil {
 		logrus.Warningf("could not parse panic time %s: %v", latestPanic, err)
 		return ""
