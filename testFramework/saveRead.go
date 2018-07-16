@@ -48,7 +48,9 @@ func ReadFromDisk(testPath string) (*TestConfig, error) {
 	if err != nil {
 		return test, fmt.Errorf("error getting current dir: %v", err)
 	}
-	test.CustomServicePath = path.Join(path.Dir(dir), test.testPath, test.CustomServicePath)
+	if test.CustomServicePath != "" {
+		test.CustomServicePath = path.Join(path.Dir(dir), test.testPath, test.CustomServicePath)
+	}
 	return test, nil
 }
 
