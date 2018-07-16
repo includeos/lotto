@@ -5,6 +5,7 @@ Iface outside {
     gateway: 10.100.0.1,
     prerouting: dnat
 }
+
 Iface inside {
     index: 1,
     address: 10.100.0.140,
@@ -56,4 +57,14 @@ Nat::IP snat {
             snat(inside.address)
         }
     }
+}
+
+Timer t {
+    interval: 30,
+    data: [
+        timestamp,
+        memory,
+        cpu,
+        stack-sampling
+    ]
 }

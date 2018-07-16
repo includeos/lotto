@@ -44,11 +44,22 @@ Load_balancer lb {
             {
                 address: 10.100.0.150,
                 port: 8080
-            },                            
+            },
             {
                 address: 10.100.0.160,
                 port: 8080
             }
         ]
     }
+}
+
+Timer t {
+    interval: 30,
+    data: [
+        timestamp,
+        memory,
+        cpu,
+        stack-sampling,
+        lb
+    ]
 }
