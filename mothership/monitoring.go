@@ -86,19 +86,19 @@ func (m *Mothership) getNewestPanicID(panicIDs []string) string {
 func (m *Mothership) getAllPanicsArray() ([]string, error) {
 	type panics []string
 	var c panics
-	request := fmt.Sprintf("instance-crashes %s -o json", m.alias)
+	request := fmt.Sprintf("instance-panics %s -o json", m.alias)
 	output, err := m.bin(request)
 	if err != nil {
 		return nil, err
 	}
 	if err := json.Unmarshal([]byte(output), &c); err != nil {
-		return nil, fmt.Errorf("error unmarshaling instance-crashes: %v", err)
+		return nil, fmt.Errorf("error unmarshaling instance-panics: %v", err)
 	}
 	return c, nil
 }
 
 func (m *Mothership) getSinglePanicOutput(panicID string) (string, error) {
-	request := fmt.Sprintf("instance-crash %s %s", m.alias, panicID)
+	request := fmt.Sprintf("instance-panic %s %s", m.alias, panicID)
 	output, err := m.bin(request)
 	if err != nil {
 		return "", err
