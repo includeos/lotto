@@ -3,12 +3,10 @@ package mothership
 import (
 	"fmt"
 	"os/exec"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/mnordsletten/lotto/environment"
-	"github.com/mnordsletten/lotto/util"
 	"github.com/sirupsen/logrus"
 )
 
@@ -53,6 +51,21 @@ func NewMothership(host, username, password, binary string, port int, notls, ver
 
 // bin uses the mothership binary CLI to perform all actions towards mothership
 func (m *Mothership) bin(request string) (string, error) {
+	commandList := strings.Split(m.CLICommand(), " ")
+	commandList = append(commandList, strings.Split(request, " ")...)
+	cmd := exec.Command(commandList[0], commandList[1:]...)
+	logrus.Debugf("mothership command: %v", cmd.Args)
+
+	byteOutput, err := cmd.CombinedOutput()
+	output := strings.TrimSuffix(string(byteOutput), "\n")
+	if err != nil {
+		return "", fmt.Errorf("error running mothership cmd: %s: %s, %v", request, string(output), err)
+	}
+	return string(output), nil
+}
+
+// CLICommand populates the binary with the correct flags
+func (m *Mothership) CLICommand() string {
 	tlsFlag := ""
 	if m.NoTLS {
 		tlsFlag = "--notls"
@@ -61,18 +74,13 @@ func (m *Mothership) bin(request string) (string, error) {
 	if !m.VerifyTLS {
 		tlsInsecureFlag = "--tlsInsecureSkipVerify"
 	}
-	reqList := strings.Split(request, " ")
-	reqList = append(reqList, "--username", m.Username, "--password", m.Password,
-		"--host", m.Host, "--port", strconv.Itoa(m.Port), tlsFlag, tlsInsecureFlag)
-	reqList = util.RemoveEmptyInSlice(reqList)
-	cmd := exec.Command(m.Binary, reqList...)
-	logrus.Debugf("mothership command: %v", cmd.Args)
-
-	byteOutput, err := cmd.CombinedOutput()
-	output := strings.TrimSuffix(string(byteOutput), "\n")
-	if err != nil {
-		return "", fmt.Errorf("error running mothership cmd: %s: %s, %v", request, string(output), err)
-	}
-
-	return string(output), nil
+	bin := fmt.Sprintf("%s --username %s --password %s --host %s --port %d %s %s",
+		m.Binary,
+		m.Username,
+		m.Password,
+		m.Host,
+		m.Port,
+		tlsFlag,
+		tlsInsecureFlag)
+	return strings.Join(strings.Fields(bin), " ")
 }
