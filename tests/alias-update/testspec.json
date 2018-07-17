@@ -1,0 +1,7 @@
+{
+  "hostcommandscript": "alias.sh",
+  "naclfile": "interface.nacl",
+  "level1": 1,
+  "level2": 2,
+  "level3": 3
+}
