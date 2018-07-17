@@ -22,7 +22,7 @@ func (i InstanceHealth) String() string {
 }
 
 func (m *Mothership) CheckInstanceHealth() InstanceHealth {
-	i, err := m.getInstanceInfo(m.alias)
+	i, err := m.getInstanceInfo(m.Alias)
 	if err != nil {
 		logrus.Warningf("Could not get instance info: %v", err)
 	}
@@ -86,7 +86,7 @@ func (m *Mothership) getNewestPanicID(panicIDs []string) string {
 func (m *Mothership) getAllPanicsArray() ([]string, error) {
 	type panics []string
 	var c panics
-	request := fmt.Sprintf("instance-panics %s -o json", m.alias)
+	request := fmt.Sprintf("instance-panics %s -o json", m.Alias)
 	output, err := m.bin(request)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (m *Mothership) getAllPanicsArray() ([]string, error) {
 }
 
 func (m *Mothership) getSinglePanicOutput(panicID string) (string, error) {
-	request := fmt.Sprintf("instance-panic %s %s", m.alias, panicID)
+	request := fmt.Sprintf("instance-panic %s %s", m.Alias, panicID)
 	output, err := m.bin(request)
 	if err != nil {
 		return "", err

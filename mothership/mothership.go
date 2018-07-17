@@ -23,7 +23,7 @@ type Mothership struct {
 	VerifyTLS     bool   `json:"verifytls,omitempty"`
 	Binary        string `json:"binarypath,omitempty"`
 	uplinkname    string
-	alias         string
+	Alias         string
 	lastBuildTag  string
 	lastCheckTime time.Time
 }
@@ -41,8 +41,8 @@ func NewMothership(host, username, password, binary string, port int, notls, ver
 		return m, fmt.Errorf("error pushing uplink %s: %v", uplinkInfo.FileName, err)
 	}
 	m.uplinkname = uplinkInfo.Name
-	m.alias = fmt.Sprintf("lotto-%s", m.Username)
-	logrus.Infof("Starbase alias to use: %s", m.alias)
+	m.Alias = fmt.Sprintf("lotto-%s", m.Username)
+	logrus.Infof("Starbase alias to use: %s", m.Alias)
 
 	// lastCheckTime is used to know when the testing started
 	m.lastCheckTime = time.Now()

@@ -53,8 +53,8 @@ func (m *Mothership) createCleanStarbase() error {
 // to the Mothership.
 func (m *Mothership) LaunchCleanStarbase(env environment.Environment) error {
 	// Remove old alias, if it does not exist an error is returned but that does not matter
-	if err := m.deleteInstanceByAlias(m.alias); err != nil {
-		logrus.Debugf("%s could not be removed: %v", m.alias, err)
+	if err := m.deleteInstanceByAlias(m.Alias); err != nil {
+		logrus.Debugf("%s could not be removed: %v", m.Alias, err)
 	}
 
 	// Create a new tag which is inserted in the image that is built
@@ -74,7 +74,7 @@ func (m *Mothership) LaunchCleanStarbase(env environment.Environment) error {
 	}
 
 	// Set the alias to something generic
-	if err := m.setAlias(m.alias, id); err != nil {
+	if err := m.setAlias(m.Alias, id); err != nil {
 		return err
 	}
 	return nil
@@ -84,20 +84,20 @@ func (m *Mothership) CheckStarbaseIDInUse() bool {
 	type starbase struct {
 		Status string `json:"status"`
 	}
-	request := fmt.Sprintf("inspect-instance %s -o json", m.alias)
+	request := fmt.Sprintf("inspect-instance %s -o json", m.Alias)
 	response, err := m.bin(request)
 	if err != nil {
-		logrus.Infof("Mothership: starbase with alias: %s does not exist", m.alias)
+		logrus.Infof("Mothership: starbase with alias: %s does not exist", m.Alias)
 		return false
 	}
-	logrus.Infof("Mothership: starbase with alias: %s exists", m.alias)
+	logrus.Infof("Mothership: starbase with alias: %s exists", m.Alias)
 	var star starbase
 	if err := json.Unmarshal([]byte(response), &star); err != nil {
 		logrus.Debugf("could not check if starbase is connected: %v", err)
 		return false
 	}
 	if star.Status != "connected" {
-		logrus.Infof("Mothership: starbase with alias: %s is disconnected", m.alias)
+		logrus.Infof("Mothership: starbase with alias: %s is disconnected", m.Alias)
 		return false
 	}
 	return true
