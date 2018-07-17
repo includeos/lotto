@@ -2,12 +2,12 @@ package environment
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os/exec"
 	"strconv"
 	"strings"
 
+	"github.com/mnordsletten/lotto/util"
 	"github.com/sirupsen/logrus"
 )
 
@@ -127,47 +127,13 @@ func verifyRoute(env Environment, route string, clientNum int) error {
 }
 
 func runSSHScript(file, SSHRemote string) ([]byte, error) {
-	bytes, err := ioutil.ReadFile(file)
+	b, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, fmt.Errorf("could not read file %s: %v", file, err)
 	}
-	x := exec.Command("ssh", "-o", "StrictHostKeyChecking=no", SSHRemote, "bash -s")
-	stdin, err := x.StdinPipe()
+	out, err := util.ExternalCommandInput(string(b), []string{"ssh", "-o", "StrictHostKeyChecking=no", SSHRemote})
 	if err != nil {
-		return nil, err
-	}
-	stdout, err := x.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-	stderr, err := x.StderrPipe()
-	if err != nil {
-		return nil, err
-	}
-	err = x.Start()
-	if err != nil {
-		return nil, err
-	}
-
-	// Send script contents to process
-	_, err = io.WriteString(stdin, string(bytes))
-	if err != nil {
-		return nil, err
-	}
-	stdin.Close()
-	out, err := ioutil.ReadAll(stdout)
-	if err != nil {
-		return nil, fmt.Errorf("stdout read err: %v", err)
-	}
-	outerr, err := ioutil.ReadAll(stderr)
-	if err != nil {
-		return nil, fmt.Errorf("stderr read err: %v", err)
-	}
-	// Check for exit errors
-	if err := x.Wait(); err != nil {
-		if exiterr, ok := err.(*exec.ExitError); ok {
-			return nil, fmt.Errorf("%v: %s", exiterr, string(outerr))
-		}
+		return nil, fmt.Errorf("problem running external command: %v", err)
 	}
 	return out, nil
 }

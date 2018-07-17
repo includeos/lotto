@@ -3,6 +3,8 @@ package util
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os/exec"
 	"strings"
 	"time"
@@ -101,4 +103,53 @@ func ExternalCommandCombinedOutput(cmdString string) (string, error) {
 		return string(combinedOutput), MyError{cmdString, "", string(combinedOutput), err}
 	}
 	return string(combinedOutput), nil
+}
+
+// ExternalCommandInput takes an input that is sent to bash -s stdin
+func ExternalCommandInput(input string, sshRemote []string) ([]byte, error) {
+	var command []string
+	if len(sshRemote) > 0 {
+		command = append(sshRemote, "bash -s")
+	} else {
+		command = []string{"bash", "-s"}
+	}
+	x := exec.Command(command[0], command[1:]...)
+	stdin, err := x.StdinPipe()
+	if err != nil {
+		return nil, err
+	}
+	stdout, err := x.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
+	stderr, err := x.StderrPipe()
+	if err != nil {
+		return nil, err
+	}
+	err = x.Start()
+	if err != nil {
+		return nil, err
+	}
+
+	// Send script contents to process
+	_, err = io.WriteString(stdin, input)
+	if err != nil {
+		return nil, err
+	}
+	stdin.Close()
+	out, err := ioutil.ReadAll(stdout)
+	if err != nil {
+		return nil, fmt.Errorf("stdout read err: %v", err)
+	}
+	outerr, err := ioutil.ReadAll(stderr)
+	if err != nil {
+		return nil, fmt.Errorf("stderr read err: %v", err)
+	}
+	// Check for exit errors
+	if err := x.Wait(); err != nil {
+		if exiterr, ok := err.(*exec.ExitError); ok {
+			return nil, fmt.Errorf("%v: %s", exiterr, string(outerr))
+		}
+	}
+	return out, nil
 }
