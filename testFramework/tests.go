@@ -1,12 +1,18 @@
 package testFramework
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"html"
+	"html/template"
+	"io/ioutil"
 	"path"
 	"time"
 
 	"github.com/mnordsletten/lotto/environment"
+	"github.com/mnordsletten/lotto/mothership"
+	"github.com/mnordsletten/lotto/util"
 	"github.com/sirupsen/logrus"
 )
 
@@ -14,6 +20,7 @@ type TestConfig struct {
 	ID                  string                 `json:"id"`
 	NaclFile            string                 `json:"naclfile"`
 	ClientCommandScript string                 `json:"clientcommandscript"`
+	HostCommandScript   string                 `json:"hostcommandscript"`
 	Setup               environment.SSHClients `json:"setup"`
 	Level1              int                    `json:"level1"`
 	Level2              int                    `json:"level2"`
@@ -39,24 +46,36 @@ func (tr TestResult) String() string {
 	return fmt.Sprintf("Percentage: %.1f%%, sent/recv: %d/%d, ShouldFail: %t, Name: %s", tr.SuccessPercentage, tr.Sent, tr.Received, tr.ShouldFail, tr.Name)
 }
 
-// RunTest runs the clientCmdScript on client1 level number of times and returns a TestResult
-func (t *TestConfig) RunTest(level int, env environment.Environment) (TestResult, error) {
+// RunTest runs the clientCmdScript on either host or client1 level number of times and returns a TestResult
+func (t *TestConfig) RunTest(level int, env environment.Environment, mother *mothership.Mothership) (TestResult, error) {
 	if err := t.prepareTest(env); err != nil {
 		return TestResult{}, fmt.Errorf("error preparing test: %v", err)
 	}
 	logrus.Infof("Starting test: %s", path.Base(t.testPath))
 	var results []TestResult
 	for i := 0; i < level; i++ {
-		testOutput, err := env.RunClientCmdScript(1, t.ClientCommandScript)
-		if err != nil {
-			return TestResult{}, fmt.Errorf("could not run client command script: %v", err)
-		}
+		var testOutput []byte
 		var testResult TestResult
-		testResult.Time = time.Now().Format(time.RFC3339)
-		testResult.Name = path.Base(t.testPath)
+		var err error
+		// Run test either in client or in host
+		if t.ClientCommandScript != "" {
+			if testOutput, err = t.runClientTest(env); err != nil {
+				return testResult, fmt.Errorf("could not run client test: %v", err)
+			}
+		} else if t.HostCommandScript != "" {
+			if testOutput, err = t.runHostTest(mother); err != nil {
+				return testResult, fmt.Errorf("could not run lotto test: %v", err)
+			}
+		} else {
+			return testResult, fmt.Errorf("no testFile found")
+		}
+
+		// Parse test results
 		if err = json.Unmarshal(testOutput, &testResult); err != nil {
 			return testResult, fmt.Errorf("could not parse testResults: %v", err)
 		}
+		testResult.Time = time.Now().Format(time.RFC3339)
+		testResult.Name = path.Base(t.testPath)
 
 		// Calculate success
 		testResult.ShouldFail = t.ShouldFail
@@ -72,6 +91,46 @@ func (t *TestConfig) RunTest(level int, env environment.Environment) (TestResult
 		results = append(results, testResult)
 	}
 	return combineTestResults(results), nil
+}
+
+func (t *TestConfig) runClientTest(env environment.Environment) ([]byte, error) {
+	testOutput, err := env.RunClientCmdScript(1, t.ClientCommandScript)
+	if err != nil {
+		return testOutput, fmt.Errorf("could not run client command script: %v", err)
+	}
+	return testOutput, nil
+}
+
+func (t *TestConfig) runHostTest(mother *mothership.Mothership) ([]byte, error) {
+	// Process script file as template, replace template objects with actual info.
+	f, err := ioutil.ReadFile(t.HostCommandScript)
+	if err != nil {
+		return nil, fmt.Errorf("error reading lotto test template: %v", err)
+	}
+
+	// Parse requires a string
+	m, err := template.New("test").Parse(string(f))
+	if err != nil {
+		return nil, fmt.Errorf("error parsing template: %v", err)
+	}
+
+	type HostCommandTemplate struct {
+		MothershipBinPathAndName string
+		OriginalAlias            string
+	}
+
+	templ := HostCommandTemplate{MothershipBinPathAndName: mother.CLICommand(), OriginalAlias: mother.Alias}
+	var script bytes.Buffer
+	if err = m.Execute(&script, templ); err != nil {
+		return nil, fmt.Errorf("error executing template: %v", err)
+	}
+
+	out, err := util.ExternalCommandInput(html.UnescapeString(script.String()), nil)
+	if err != nil {
+		fmt.Printf("problem with external: %v", err)
+	}
+	// Unmarshal test results into testResult
+	return out, nil
 }
 
 func (t *TestConfig) prepareTest(env environment.Environment) error {
