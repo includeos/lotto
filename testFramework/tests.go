@@ -51,7 +51,7 @@ type HostCommandTemplate struct {
 }
 
 func (tr TestResult) String() string {
-	return fmt.Sprintf("Percentage: %.1f%%, sent/recv: %d/%d, ShouldFail: %t, Name: %s", tr.SuccessPercentage, tr.Sent, tr.Received, tr.ShouldFail, tr.Name)
+	return fmt.Sprintf("Result: %.1f%% %d/%d, Name: %s, ShouldFail: %t", tr.SuccessPercentage, tr.Received, tr.Sent, tr.Name, tr.ShouldFail)
 }
 
 // RunTest runs the clientCmdScript on either host or client1 level number of times and returns a TestResult
