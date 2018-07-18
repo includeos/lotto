@@ -5,7 +5,7 @@ set -e
 moth="{{.MothershipBinPathAndName}}"
 original_alias={{.OriginalAlias}}
 ID=$($moth inspect-instance $original_alias -o id)
-new_alias=$(echo alias-test-"$(date | md5)")
+new_alias=$(echo alias-test-"$(date | shasum | cut -d " " -f 1)")
 
 # Change alias to new_alias
 cmdOut=$($moth instance-alias $ID $new_alias)
