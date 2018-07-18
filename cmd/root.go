@@ -86,8 +86,8 @@ var RootCmd = &cobra.Command{
 				}
 				// Build and deploy custom service if specified
 				if test.CustomServicePath != "" {
-					if err = util.BuildServiceInDocker(test.CustomServicePath); err != nil {
-						logrus.Fatalf("Could not build custom service: %v", err)
+					if test.ImageID, err = mother.BuildPushAndDeployCustomService(test.CustomServicePath, test.Deploy); err != nil {
+						logrus.Fatalf("could not build and push custom service: %v", err)
 					}
 				}
 				// Run client command

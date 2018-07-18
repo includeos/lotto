@@ -15,17 +15,18 @@ const cleanStarbaseImage = "clean-starbase"
 // Mothership defines all options necessary to keep track of the mothership and
 // the starbase that is connected to it
 type Mothership struct {
-	Host          string `json:"host"`
-	Port          int    `json:"port"`
-	NoTLS         bool   `json:"notls,omitempty"`
-	Username      string `json:"username,omitempty"`
-	Password      string `json:"password,omitempty"`
-	VerifyTLS     bool   `json:"verifytls,omitempty"`
-	Binary        string `json:"binarypath,omitempty"`
-	uplinkname    string
-	Alias         string
-	lastBuildTag  string
-	lastCheckTime time.Time
+	Host           string `json:"host"`
+	Port           int    `json:"port"`
+	NoTLS          bool   `json:"notls,omitempty"`
+	Username       string `json:"username,omitempty"`
+	Password       string `json:"password,omitempty"`
+	VerifyTLS      bool   `json:"verifytls,omitempty"`
+	Binary         string `json:"binarypath,omitempty"`
+	uplinkname     string
+	uplinkFileName string
+	Alias          string
+	lastBuildTag   string
+	lastCheckTime  time.Time
 }
 
 // NewMothership is used to generate a Mothership struct.
@@ -41,6 +42,7 @@ func NewMothership(host, username, password, binary string, port int, notls, ver
 		return m, fmt.Errorf("error pushing uplink %s: %v", uplinkInfo.FileName, err)
 	}
 	m.uplinkname = uplinkInfo.Name
+	m.uplinkFileName = uplinkInfo.FileName
 	m.Alias = fmt.Sprintf("lotto-%s", m.Username)
 	logrus.Infof("Starbase alias to use: %s", m.Alias)
 

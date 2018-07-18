@@ -3,9 +3,11 @@ package mothership
 import (
 	"encoding/json"
 	"fmt"
+	"path"
 	"time"
 
 	"github.com/mnordsletten/lotto/environment"
+	"github.com/mnordsletten/lotto/util"
 	"github.com/sirupsen/logrus"
 )
 
@@ -124,4 +126,24 @@ func (m *Mothership) waitUntilStarbaseConnects(tag string) (string, error) {
 		time.Sleep(2 * time.Second)
 	}
 	return "", fmt.Errorf("Starbase %s never connected to mothership", tag)
+}
+
+// BuildPushAndDeployCustomService will build a custom service using docker, push it and deploy if the argument
+// deploy is not set to false
+func (m *Mothership) BuildPushAndDeployCustomService(customServicePath string, deploy bool) (string, error) {
+	imageName := path.Base(customServicePath)
+	logrus.Infof("Building custom service %s", imageName)
+	imagePath := path.Join(customServicePath, "build", imageName)
+	if err := util.BuildServiceInDocker(customServicePath, m.uplinkFileName); err != nil {
+		return "", fmt.Errorf("could not build custom service: %v", err)
+	}
+
+	imageID, err := m.PushImage(imagePath)
+	if err != nil {
+		return "", fmt.Errorf("could not push image %s: %v", imagePath, err)
+	}
+	if deploy {
+		m.deploy(imageID)
+	}
+	return imageID, nil
 }

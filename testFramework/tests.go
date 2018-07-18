@@ -27,6 +27,8 @@ type TestConfig struct {
 	Level3              int                    `json:"level3"`
 	ShouldFail          bool                   `json:"shouldfail"`
 	CustomServicePath   string                 `json:"customservicepath"`
+	Deploy              bool                   `json:"deploy"`
+	ImageID             string
 	testPath            string
 }
 
@@ -40,6 +42,12 @@ type TestResult struct {
 	SuccessPercentage float32 // Percentage of packets that pass
 	Raw               string  // Raw output from the command
 	ShouldFail        bool    // If the test expects to fail
+}
+
+type HostCommandTemplate struct {
+	MothershipBinPathAndName string
+	OriginalAlias            string
+	ImageID                  string
 }
 
 func (tr TestResult) String() string {
@@ -114,12 +122,9 @@ func (t *TestConfig) runHostTest(mother *mothership.Mothership) ([]byte, error) 
 		return nil, fmt.Errorf("error parsing template: %v", err)
 	}
 
-	type HostCommandTemplate struct {
-		MothershipBinPathAndName string
-		OriginalAlias            string
-	}
-
-	templ := HostCommandTemplate{MothershipBinPathAndName: mother.CLICommand(), OriginalAlias: mother.Alias}
+	templ := HostCommandTemplate{MothershipBinPathAndName: mother.CLICommand(),
+		OriginalAlias: mother.Alias,
+		ImageID:       t.ImageID}
 	var script bytes.Buffer
 	if err = m.Execute(&script, templ); err != nil {
 		return nil, fmt.Errorf("error executing template: %v", err)

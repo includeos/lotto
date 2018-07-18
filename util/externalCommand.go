@@ -31,7 +31,6 @@ func splitString(cmdString string) *exec.Cmd {
 	// Process input string
 	cmdString = strings.Join(strings.Fields(cmdString), " ")
 	cmdList := []string(strings.Split(cmdString, " "))
-	fmt.Println(cmdList)
 	return exec.Command(cmdList[0], cmdList[1:]...)
 }
 

@@ -110,10 +110,12 @@ func (m *Mothership) Launch(imageName string, env environment.Environment) error
 }
 
 // PushImage pushes the supplied image to the mothership
-func (m *Mothership) PushImage(imagePath string) error {
+func (m *Mothership) PushImage(imagePath string) (string, error) {
 	request := fmt.Sprintf("push-image %s", imagePath)
-	if _, err := m.bin(request); err != nil {
-		return err
+	var output string
+	var err error
+	if output, err = m.bin(request); err != nil {
+		return "", err
 	}
-	return nil
+	return output, nil
 }
