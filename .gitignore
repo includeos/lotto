@@ -19,3 +19,6 @@ local_instances/
 clean-starbase*
 !clean-starbase.nacl
 *.csv
+build/
+disk/
+config.json
