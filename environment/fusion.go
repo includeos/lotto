@@ -10,6 +10,7 @@ import (
 )
 
 type Fusion struct {
+	name       string
 	Clients    SSHClients `json:"sshclients"`
 	UplinkFile string     `json:"uplinkFile"`
 	VmspecPath string     `json:"vmSpecPath"`
@@ -26,8 +27,12 @@ func NewFusion(clients SSHClients, uplinkFilePath, vmSpecPath, mothership string
 	return f
 }
 
+func (f *Fusion) SetName(name string) {
+	f.name = name
+}
+
 func (f *Fusion) Name() string {
-	return "Fusion"
+	return f.name
 }
 
 func (f *Fusion) Create() error {

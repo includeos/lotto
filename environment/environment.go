@@ -65,12 +65,8 @@ func (c *SSHClients) RunFuncOnAllClients(f func(string) string) {
 	}
 }
 
-type EnvSettings struct {
-	Vcloud Vcloud
-	Fusion Fusion
-}
-
 type Environment interface {
+	SetName(string)
 	Name() string
 	Create() error
 	Delete() error

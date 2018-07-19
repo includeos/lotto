@@ -43,7 +43,7 @@ func NewMothership(host, username, password, binary string, port int, notls, ver
 	}
 	m.uplinkname = uplinkInfo.Name
 	m.uplinkFileName = uplinkInfo.FileName
-	m.Alias = fmt.Sprintf("lotto-%s", m.Username)
+	m.Alias = fmt.Sprintf("lotto-%s-%s", env.Name(), m.Username)
 	logrus.Infof("Starbase alias to use: %s", m.Alias)
 
 	// lastCheckTime is used to know when the testing started

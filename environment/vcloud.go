@@ -11,6 +11,7 @@ import (
 )
 
 type Vcloud struct {
+	name         string
 	Host         string     `json:"host,omitempty"`
 	Org          string     `json:"org"`
 	Username     string     `json:"username"`
@@ -23,8 +24,12 @@ type Vcloud struct {
 	Mothership   string     `json:"mothership"`
 }
 
+func (v *Vcloud) SetName(name string) {
+	v.name = name
+}
+
 func (v *Vcloud) Name() string {
-	return "Vcloud"
+	return v.name
 }
 
 func (v *Vcloud) Create() error {

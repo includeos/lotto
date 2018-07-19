@@ -1,5 +1,6 @@
 {
-  "Vcloud": {
+  "vcloud1": {
+    "envType": "vcloud",
     "host": "",
     "org": "",
     "username": "",
@@ -16,7 +17,26 @@
       "client4": "lotto-client4"
     }
   },
-  "Fusion": {
+  "vcloud2": {
+    "envType": "vcloud",
+    "host": "",
+    "org": "",
+    "username": "",
+    "password": "",
+    "template": "",
+    "catalog": "",
+    "networkname": "",
+    "mothership": "public",
+    "uplinkfile": "vcloud-uplink.json",
+    "sshclients": {
+      "client1": "lotto2-client1",
+      "client2": "lotto2-client2",
+      "client3": "lotto2-client3",
+      "client4": "lotto2-client4"
+    }
+  },
+  "fusion": {
+    "envType": "fusion",
     "mothership": "local",
     "uplinkFile": "fusion-uplink.json",
     "vmSpecPath": "fusionvm.json",
