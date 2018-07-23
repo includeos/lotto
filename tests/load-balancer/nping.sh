@@ -1,9 +1,8 @@
-# Connect to apache server running on client4 (TCP)
-# Basically: nping --tcp-connect -p 8080 10.100.0.160
+# Basically: nping --tcp-connect -p 90 10.100.0.30
 
 # Prerequisite:
 # Run 'docker run -dit --name my-apache-app -p 8080:80 -v "$PWD":/usr/local/apache2/htdocs/ httpd:2.4' on
-# lotto-client4 (10.100.0.160)
+# lotto-client3 (10.100.0.150) and lotto-client4 (10.100.0.160)
 
 sent=1000
 rate=100 # Requests pr second, higher than 5 requires sudo
