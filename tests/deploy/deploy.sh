@@ -18,12 +18,11 @@ do
     sent=$[$sent + 1]
     # Deploy
     cmdOut+=$($moth deploy $instID $imgID --wait)
-    # Check if the instance now reports this new nacl:
+    # Check if the instance now runs the image (note that this will be the same imageId every time):
     cmdOut+=$($moth inspect-instance $instID -o json | jq -r '.imageId')
     if [[ "$cmdOut" == *"$imgID"* ]]; then
         received=$[$received + 1]
     fi
-    sleep 0.2
 done
 
 # If none of the commands above failed it means that we were successful
