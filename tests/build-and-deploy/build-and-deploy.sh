@@ -20,7 +20,7 @@ do
     imgID=$($moth build Starbase --instance $instID --nacl $naclID --tag $tag --waitAndPrint)
     # Deploy
     cmdOut+=$($moth deploy $instID $imgID --wait)
-    # Check if the instance now reports this new nacl:
+    # Check if the instance now runs the built image and that it reports the given tag:
     cmdOutImgID=$($moth inspect-instance $instID -o json | jq -r '.imageId')
     cmdOutTag=$($moth inspect-instance $instID -o json | jq -r '.tag')
     if [[ "$cmdOutImgID" == *"$imgID"* ]] && [[ "$cmdOutTag" == *"$tag"* ]]; then
