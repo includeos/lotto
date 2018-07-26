@@ -7,6 +7,7 @@ instAlias={{.OriginalAlias}}
 instID=$($moth inspect-instance $instAlias -o id)
 naclID=$($moth push-nacl tests/upgrade/interface.nacl -o id)
 
+# 1.
 sent=1
 received=0
 # Upgrade with the pushed nacl
@@ -18,6 +19,7 @@ if [[ "$cmdOut" == *"$naclID"* ]]; then
     received=$[$received + 1]
 fi
 
+# 2.
 sent=$[$sent + 1]
 # Upgrade without specifying nacl (the previously used nacl should be used again)
 cmdOut+=$($moth upgrade $instID --waitAndPrintImageID)
@@ -28,12 +30,15 @@ if [[ "$cmdOut" == *"$naclID"* ]]; then
     received=$[$received + 1]
 fi
 
+# 3.
 sent=$[$sent + 1]
 # Upgrade and specify service (Starbase is the only possible service for now)
 cmdOut+=$($moth upgrade $instID --service Starbase --waitAndPrintImageID)
 received=$[$received + 1]
 
 sleep 0.5
+
+# 4.
 sent=$[$sent + 1]
 customTag="mycustomtag"
 # Upgrade and give the image a tag that the instance will report back
