@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/mnordsletten/lotto/environment"
 	"github.com/mnordsletten/lotto/mothership"
 	"github.com/mnordsletten/lotto/testFramework"
@@ -66,13 +68,26 @@ var RootCmd = &cobra.Command{
 		}
 
 		// Test setup
-		tests := make([]*testFramework.TestConfig, len(args))
-		for i, arg := range args {
-			tests[i], err = testFramework.ReadFromDisk(arg)
+		// Filter out the tests that should be skipped (folder name starts with "skip")
+		var testsToRun []string
+		for _, arg := range args {
+			// Skipping tests starting with "tests/skip"
+			if !strings.HasPrefix(arg, "tests/skip") {
+				testsToRun = append(testsToRun, arg)
+			} else {
+				logrus.Warningf("Skipping test %s", arg)
+			}
+		}
+		// Get the TestConfig for every test that should be run
+		tests := make([]*testFramework.TestConfig, len(testsToRun))
+		for i, testPath := range testsToRun {
+			tests[i], err = testFramework.ReadFromDisk(testPath)
 			if err != nil {
 				logrus.Fatalf("Could not read test spec: %v", err)
 			}
 		}
+		// Run the tests
+		// loops flag taken into account
 		for loopIndex := 0; loopIndex < loops || loops == 0; loopIndex++ {
 			logrus.Infof("Test loop nr: %d, numRuns: %d", loopIndex+1, numRuns)
 			for _, test := range tests {
@@ -91,6 +106,7 @@ var RootCmd = &cobra.Command{
 					}
 				}
 				// Run client command
+				// numRuns flag taken into account
 				result, err := test.RunTest(numRuns, env, mother)
 				if err != nil {
 					logrus.Warningf("error running test %v", err)
