@@ -1,7 +1,7 @@
 {
     "customservicepath": "acorn_service",
-    "deploy": false,
-    "clientcommandscript": "hey-acorn.sh",
+    "deploy": true,
+    "clientcommandscript": "nping-acorn.sh",
     "setup": {
         "client1": "install_hey.sh"
     },
