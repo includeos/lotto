@@ -1,7 +1,7 @@
 {
     "customservicepath": "demo_service",
-    "deploy": false,
-    "clientcommandscript": "hey-demo.sh",
+    "deploy": true,
+    "clientcommandscript": "nping-demo.sh",
     "setup": {
         "client1": "install_hey.sh"
     },

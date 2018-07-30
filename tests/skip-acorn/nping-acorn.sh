@@ -1,18 +1,17 @@
-# Basically: nping --udp -p 4242 10.100.0.30 --data-string hi
+# Basically: nping --tcp-connect -p 80 10.100.0.30
 
 sent=1000
 rate=100 # Requests pr second, higher than 5 requires sudo
-mode="--udp"
-port=4242
+mode="--tcp-connect"
+port=80
 # delay=
-data="hi"
 
-cmdOut=$(nping -c $sent --rate $rate $mode -p $port --data-string $data 10.100.0.30)
+cmdOut=$(nping -c $sent $mode -p $port --rate $rate 10.100.0.30)
 res=$(printf "%s" "$cmdOut" | grep "Successful connections:")
 # attempts=$(printf "%s" "$res" | cut -d ' ' -f 4)
-received=$(printf "%s" "$res" | cut -d ' ' -f 7)
-# successful=$(printf "%s" "$res" | cut -d ' ' -f 7)
-# failed=$(printf "%s" "$res" | cut -d ' ' -f 10)
+received=$(printf "%s" "$res" | cut -d ' ' -f 8)
+# successful=$(printf "%s" "$res" | cut -d ' ' -f 8)
+# failed=$(printf "%s" "$res" | cut -d ' ' -f 11)
 
 jq  --arg dataSent $sent \
     --arg dataReceived $received \
