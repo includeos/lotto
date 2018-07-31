@@ -7,7 +7,7 @@ moth="{{.MothershipBinPathAndName}}"
 # Setup: Build an image to download
 instAlias={{.OriginalAlias}}
 instID=$($moth inspect-instance $instAlias -o id)
-naclID=$($moth push-nacl tests/download-image-for-hypervisor/interface.nacl -o id)
+naclID=$($moth push-nacl tests/download-image-for-hypervisors/interface.nacl -o id)
 imgID=$($moth build Starbase --instance $instID --nacl $naclID --waitAndPrint)
 
 hypervisor=""

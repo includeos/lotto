@@ -5,7 +5,7 @@ set -e
 moth="{{.MothershipBinPathAndName}}"
 instAlias={{.OriginalAlias}}
 instID=$($moth inspect-instance $instAlias -o id)
-naclID=$($moth push-nacl tests/deploy/interface.nacl -o id)
+naclID=$($moth push-nacl tests/build-and-deploy/interface.nacl -o id)
 tagBase="image"
 
 sent=0
