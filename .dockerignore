@@ -1,6 +1,8 @@
 # Exclude everything execept the files specified here
 **
 # Go src packages
+!lotto.go
+!lotto_test.go
 !cmd/
 !environment/
 !mothership/
