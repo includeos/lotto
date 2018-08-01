@@ -95,7 +95,8 @@ var RootCmd = &cobra.Command{
 				if !skipRebuildTest {
 					if test.NaclFile != "" {
 						if err = mother.DeployNacl(test.NaclFile); err != nil {
-							logrus.Fatalf("Could not deploy: %v", err)
+							logrus.Warningf("Could not deploy: %v", err)
+							continue
 						}
 					}
 				}

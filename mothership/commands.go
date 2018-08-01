@@ -70,7 +70,7 @@ func (m *Mothership) pullImage(checksum, targetName string) error {
 // deploy takes an image checksum and deploys to starbase
 func (m *Mothership) deploy(checksum string) error {
 	logrus.Infof("Deploying %s to %s", checksum, m.Alias)
-	request := fmt.Sprintf("deploy %s %s", m.Alias, checksum)
+	request := fmt.Sprintf("deploy --wait %s %s", m.Alias, checksum)
 	if _, err := m.bin(request); err != nil {
 		return fmt.Errorf("error deploying: %v", err)
 	}
