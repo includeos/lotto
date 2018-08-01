@@ -1,0 +1,17 @@
+# Exclude everything execept the files specified here
+**
+# Go src packages
+!cmd/
+!environment/
+!mothership/
+!testFramework/
+!util
+
+# Dep files
+!Gopkg.*
+
+# Test files
+!tests/
+!config-*
+!clean-starbase.nacl
+!*uplink.json
