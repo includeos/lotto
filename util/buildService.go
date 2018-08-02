@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"os"
+	"os/user"
 	"path"
 )
 
@@ -23,7 +24,12 @@ func BuildServiceInDocker(servicePath, uplinkName string) error {
 	}
 
 	// Build using docker
-	cmdString := fmt.Sprintf("docker run -v %s:/service includeos/build:dev", servicePath)
+	cur, err := user.Current()
+	if err != nil {
+		return fmt.Errorf("could not get current user info: %v", err)
+	}
+
+	cmdString := fmt.Sprintf("docker run -v %s:/service -u %s:%s includeos/build:dev", servicePath, cur.Uid, cur.Gid)
 	if output, err := ExternalCommand(cmdString); err != nil {
 		return fmt.Errorf("build failed: %s, error: %v", output, err)
 	}
