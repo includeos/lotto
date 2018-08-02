@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+	"path"
 	"strings"
+	"time"
 
 	"github.com/mnordsletten/lotto/environment"
 	"github.com/mnordsletten/lotto/mothership"
@@ -13,6 +17,7 @@ import (
 
 var (
 	cmdEnv           string
+	tag              string
 	verboseLogging   bool
 	setUpEnv         bool
 	forceNewStarbase bool
@@ -114,10 +119,26 @@ var RootCmd = &cobra.Command{
 				}
 				// Process results
 				logrus.Info(result)
-				util.StructToCsvOutput(result, "testResults")
 				health := mother.CheckInstanceHealth()
 				logrus.Info(health)
-				util.StructToCsvOutput(health, "instanceHealth")
+				if len(tag) > 0 {
+					// Create folder with name of versions getting tested
+					mVersion, err := mother.ServerVersion()
+					if err != nil {
+						logrus.Warningf("error getting mothership server version: %v", err)
+					}
+					iosVersion, err := mother.StarbaseVersion()
+					if err != nil {
+						logrus.Warningf("error getting starbase IncludeOS version: %v", err)
+					}
+					folderPath := path.Join("testResults", fmt.Sprintf("mothership.%s_IncludeOS.%s_%s", mVersion, iosVersion, tag))
+					if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
+						logrus.Fatalf("Could not create testResults folder: %v", err)
+					}
+					util.StructToCsvOutput(result, path.Join(folderPath, result.Name))
+					healthName := fmt.Sprintf("instanceHealth-%s", time.Now().Format("2006-01-02"))
+					util.StructToCsvOutput(health, path.Join(folderPath, healthName))
+				}
 			}
 		}
 	},
@@ -132,6 +153,7 @@ func init() {
 	RootCmd.Flags().BoolVar(&skipVerifyEnv, "skipVerifyEnv", false, "skip environment verification")
 	RootCmd.Flags().IntVarP(&numRuns, "numTestRuns", "n", 1, "number of test iterations to run for each test")
 	RootCmd.Flags().IntVarP(&loops, "loops", "l", 1, "number of loops for all tests to run, 0 means infinite")
+	RootCmd.Flags().StringVarP(&tag, "tag", "t", "", "Tag to give folder that stores testResults, if none then testResults are not saved")
 
 	RootCmd.Flags().StringVar(&mothershipConfigPath, "mship-config", "config-mothership.json", "Mothership config file")
 	RootCmd.Flags().StringVar(&envConfigPath, "env-config", "config-environment.json", "Environments config file")
