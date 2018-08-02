@@ -135,7 +135,9 @@ var RootCmd = &cobra.Command{
 					if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
 						logrus.Fatalf("Could not create testResults folder: %v", err)
 					}
-					util.StructToCsvOutput(result, path.Join(folderPath, result.Name))
+					if len(result.Name) > 0 {
+						util.StructToCsvOutput(result, path.Join(folderPath, result.Name))
+					}
 					healthName := fmt.Sprintf("instanceHealth-%s", time.Now().Format("2006-01-02"))
 					util.StructToCsvOutput(health, path.Join(folderPath, healthName))
 				}
