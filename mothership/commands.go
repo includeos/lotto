@@ -140,3 +140,20 @@ func (m *Mothership) ServerVersion() (string, error) {
 	}
 	return v.Version, nil
 }
+
+// StarbaseVersion returns the IncludeOS version that the starbase is using
+func (m *Mothership) StarbaseVersion() (string, error) {
+	request := fmt.Sprintf("inspect-instance %s -o json", m.Alias)
+	output, err := m.bin(request)
+	if err != nil {
+		return output, err
+	}
+	var star starbase
+	if err := json.Unmarshal([]byte(output), &star); err != nil {
+		return output, err
+	}
+	if len(star.Version) == 0 {
+		logrus.Warning("Starbase version is empty")
+	}
+	return star.Version, nil
+}

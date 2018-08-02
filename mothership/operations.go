@@ -83,9 +83,6 @@ func (m *Mothership) LaunchCleanStarbase(env environment.Environment) error {
 }
 
 func (m *Mothership) CheckStarbaseIDInUse() bool {
-	type starbase struct {
-		Status string `json:"status"`
-	}
 	request := fmt.Sprintf("inspect-instance %s -o json", m.Alias)
 	response, err := m.bin(request)
 	if err != nil {
