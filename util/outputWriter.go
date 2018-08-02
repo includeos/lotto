@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"reflect"
-	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -34,8 +33,7 @@ func StructToCsvOutput(stru interface{}, filename string) error {
 }
 
 func outputWriter(input [][]string, fullFilePath string) error {
-	date := time.Now().Format("2006-01-02")
-	fileName := fmt.Sprintf("%s-%s.csv", path.Base(fullFilePath), date)
+	fileName := fmt.Sprintf("%s.csv", path.Base(fullFilePath))
 	fullFilePath = path.Join(path.Dir(fullFilePath), fileName)
 	file := &os.File{}
 	if _, err := os.Stat(fullFilePath); os.IsNotExist(err) {

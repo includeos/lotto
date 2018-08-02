@@ -83,9 +83,6 @@ func (m *Mothership) LaunchCleanStarbase(env environment.Environment) error {
 }
 
 func (m *Mothership) CheckStarbaseIDInUse() bool {
-	type starbase struct {
-		Status string `json:"status"`
-	}
 	request := fmt.Sprintf("inspect-instance %s -o json", m.Alias)
 	response, err := m.bin(request)
 	if err != nil {
@@ -143,7 +140,9 @@ func (m *Mothership) BuildPushAndDeployCustomService(customServicePath string, d
 		return "", fmt.Errorf("could not push image %s: %v", imagePath, err)
 	}
 	if deploy {
-		m.deploy(imageID)
+		if err := m.deploy(imageID); err != nil {
+			return "", fmt.Errorf("error deploying custom service: %v", err)
+		}
 	}
 	return imageID, nil
 }

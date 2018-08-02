@@ -1,6 +1,7 @@
 package mothership
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -118,4 +119,41 @@ func (m *Mothership) PushImage(imagePath string) (string, error) {
 		return "", err
 	}
 	return output, nil
+}
+
+// ServerVersion returns the servers mothership version string
+func (m *Mothership) ServerVersion() (string, error) {
+	request := fmt.Sprintf("server-version -o json")
+	type version struct {
+		Version string `json:"Version"`
+	}
+	output, err := m.bin(request)
+	if err != nil {
+		return output, err
+	}
+	var v version
+	if err = json.Unmarshal([]byte(output), &v); err != nil {
+		return output, err
+	}
+	if len(v.Version) == 0 {
+		logrus.Warningf("Mothership server version is empty")
+	}
+	return v.Version, nil
+}
+
+// StarbaseVersion returns the IncludeOS version that the starbase is using
+func (m *Mothership) StarbaseVersion() (string, error) {
+	request := fmt.Sprintf("inspect-instance %s -o json", m.Alias)
+	output, err := m.bin(request)
+	if err != nil {
+		return output, err
+	}
+	var star starbase
+	if err := json.Unmarshal([]byte(output), &star); err != nil {
+		return output, err
+	}
+	if len(star.Version) == 0 {
+		logrus.Warning("Starbase version is empty")
+	}
+	return star.Version, nil
 }

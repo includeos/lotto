@@ -29,6 +29,12 @@ type Mothership struct {
 	lastCheckTime  time.Time
 }
 
+// starbase is used when getting info about a starbase
+type starbase struct {
+	Status  string `json:"status"`
+	Version string `json:"version"`
+}
+
 // NewMothership is used to generate a Mothership struct.
 func NewMothership(host, username, password, binary string, port int, notls, verifytls bool, env environment.Environment) (*Mothership, error) {
 	m := &Mothership{Host: host, Port: port, NoTLS: notls, VerifyTLS: verifytls, Username: username, Password: password, Binary: binary}
