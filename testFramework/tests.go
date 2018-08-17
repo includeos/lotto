@@ -113,6 +113,7 @@ func (t *TestConfig) runClientTest(env environment.Environment) ([]byte, error) 
 
 func (t *TestConfig) runHostTest(mother *mothership.Mothership) ([]byte, error) {
 	// Process script file as template, replace template objects with actual info.
+	logrus.Debugf("Running host test: %s", t.HostCommandScript)
 	f, err := ioutil.ReadFile(t.HostCommandScript)
 	if err != nil {
 		return nil, fmt.Errorf("error reading lotto test template: %v", err)
@@ -134,7 +135,7 @@ func (t *TestConfig) runHostTest(mother *mothership.Mothership) ([]byte, error) 
 
 	out, err := util.ExternalCommandInput(html.UnescapeString(script.String()), nil)
 	if err != nil {
-		fmt.Printf("problem with external: %v", err)
+		return out, fmt.Errorf("Host test external command %s failed: %v", script.String(), err)
 	}
 	// Unmarshal test results into testResult
 	return out, nil
