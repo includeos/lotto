@@ -7,7 +7,7 @@ import (
 	"path"
 )
 
-func BuildServiceInDocker(servicePath, uplinkName string) error {
+func BuildServiceInDocker(servicePath, uplinkName, dockerRepo, dockerTag string) error {
 	// Delete all old build and disk folders
 	buildFolder := path.Join(servicePath, "build")
 	diskFolder := path.Join(servicePath, "disk")
@@ -29,7 +29,7 @@ func BuildServiceInDocker(servicePath, uplinkName string) error {
 		return fmt.Errorf("could not get current user info: %v", err)
 	}
 
-	cmdString := fmt.Sprintf("docker run -v %s:/service -u %s:%s includeos/build:dev", servicePath, cur.Uid, cur.Gid)
+	cmdString := fmt.Sprintf("docker run -v %s:/service -u %s:%s %s:%s", servicePath, cur.Uid, cur.Gid, dockerRepo, dockerTag)
 	if output, err := ExternalCommand(cmdString); err != nil {
 		return fmt.Errorf("build failed: %s, error: %v", output, err)
 	}
