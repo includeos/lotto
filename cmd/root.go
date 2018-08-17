@@ -99,7 +99,7 @@ var RootCmd = &cobra.Command{
 				// Boot NaCl service to starbase, only if NaclFile is specified
 				if !skipRebuildTest {
 					if test.NaclFile != "" {
-						if err = mother.DeployNacl(test.NaclFile); err != nil {
+						if test.NaclFileShasum, test.ImageID, err = mother.DeployNacl(test.NaclFile); err != nil {
 							logrus.Warningf("Could not deploy: %v", err)
 							continue
 						}

@@ -12,20 +12,21 @@ import (
 )
 
 // DeployNacl takes a nacl file name and deploys it to the Mothership
-func (m *Mothership) DeployNacl(naclFileName string) error {
+// Returns the naclId and the image checksum
+func (m *Mothership) DeployNacl(naclFileName string) (string, string, error) {
 	naclID, err := m.pushNacl(naclFileName)
 	if err != nil {
-		return err
+		return naclID, "", err
 	}
 
 	checksum, err := m.build(naclID)
 	if err != nil {
-		return err
+		return naclID, checksum, err
 	}
 	if err := m.deploy(checksum); err != nil {
-		return err
+		return naclID, checksum, err
 	}
-	return nil
+	return naclID, checksum, nil
 }
 
 // createCleanStarbase uses a standard nacl to build and pull down the image
@@ -41,6 +42,14 @@ func (m *Mothership) createCleanStarbase() error {
 	// Build
 	if checksum, err = m.build(naclID); err != nil {
 		return fmt.Errorf("error building %s: %v", naclFileName, err)
+	}
+
+	// Remove all resources from the mothership
+	if err := m.DeleteNacl(naclID); err != nil {
+		logrus.Errorf("error deleting clean-starbase nacl: %v", err)
+	}
+	if err := m.DeleteImage(checksum); err != nil {
+		logrus.Errorf("error deleting clean-starbase image: %v", err)
 	}
 
 	// Pull image
