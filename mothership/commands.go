@@ -27,6 +27,17 @@ func (m *Mothership) pushNacl(naclFileName string) (string, error) {
 	return response, nil
 }
 
+// DeleteNacl takes a naclID and deletes it
+func (m *Mothership) DeleteNacl(naclID string) error {
+	logrus.Debugf("Deleting NaCl: %s", naclID)
+	request := fmt.Sprintf("delete-nacl %s", naclID)
+	_, err := m.bin(request)
+	if err != nil {
+		return fmt.Errorf("could not delete nacl %s: %v", naclID, err)
+	}
+	return nil
+}
+
 // pushUplink deletes any existing uplink with same name and pushes a new one
 func (m *Mothership) pushUplink(file, name string) error {
 	// Delete any existing uplink if it exists
@@ -64,6 +75,17 @@ func (m *Mothership) pullImage(checksum, targetName string) error {
 	_, err := m.bin(fmt.Sprintf("pull-image %s %s", checksum, targetName))
 	if err != nil {
 		return fmt.Errorf("error pulling image: %v", err)
+	}
+	return nil
+}
+
+// DeleteImage takes a checksum and deletes it
+func (m *Mothership) DeleteImage(imageChecksum string) error {
+	logrus.Debugf("Deleting image: %s", imageChecksum)
+	request := fmt.Sprintf("delete-image %s", imageChecksum)
+	_, err := m.bin(request)
+	if err != nil {
+		return fmt.Errorf("could not delete image %s: %v", imageChecksum, err)
 	}
 	return nil
 }
