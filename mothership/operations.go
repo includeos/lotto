@@ -44,13 +44,15 @@ func (m *Mothership) createCleanStarbase() error {
 		return fmt.Errorf("error building %s: %v", naclFileName, err)
 	}
 
-	// Remove all resources from the mothership
-	if err := m.DeleteNacl(naclID); err != nil {
-		logrus.Errorf("error deleting clean-starbase nacl: %v", err)
-	}
-	if err := m.DeleteImage(checksum); err != nil {
-		logrus.Errorf("error deleting clean-starbase image: %v", err)
-	}
+	// Remove resources from the mothership
+	defer func() {
+		if err := m.DeleteNacl(naclID); err != nil {
+			logrus.Errorf("error deleting clean-starbase nacl: %v", err)
+		}
+		if err := m.DeleteImage(checksum); err != nil {
+			logrus.Errorf("error deleting clean-starbase image: %v", err)
+		}
+	}()
 
 	// Pull image
 	if err := m.pullImage(checksum, cleanStarbaseImage); err != nil {
