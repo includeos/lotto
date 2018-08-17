@@ -30,6 +30,7 @@ type TestConfig struct {
 	Deploy              bool                   `json:"deploy"`
 	ImageID             string
 	testPath            string
+	NaclFileShasum      string
 }
 
 type TestResult struct {
@@ -59,6 +60,7 @@ func (t *TestConfig) RunTest(level int, env environment.Environment, mother *mot
 	if err := t.prepareTest(env); err != nil {
 		return TestResult{}, fmt.Errorf("error preparing test: %v", err)
 	}
+	defer t.cleanupTest(mother)
 	logrus.Infof("Starting test: %s", path.Base(t.testPath))
 	var results []TestResult
 	for i := 0; i < level; i++ {
@@ -151,6 +153,22 @@ func (t *TestConfig) prepareTest(env environment.Environment) error {
 		}
 	}
 	return nil
+}
+
+func (t *TestConfig) cleanupTest(mother *mothership.Mothership) {
+	// Remove NaCl
+	if len(t.NaclFileShasum) > 0 {
+		if err := mother.DeleteNacl(t.NaclFileShasum); err != nil {
+			logrus.Errorf("could not clean up nacl: %v", err)
+		}
+	}
+
+	// Remove image
+	if len(t.ImageID) > 0 {
+		if err := mother.DeleteImage(t.ImageID); err != nil {
+			logrus.Errorf("could not clean up image: %v", err)
+		}
+	}
 }
 
 func combineTestResults(results []TestResult) TestResult {
