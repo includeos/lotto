@@ -1,8 +1,9 @@
 {
    "uplink":{
-      "iface":0,
-      "url":"https://10.20.17.19:9090",
-      "token":"kappa123",
-      "reboot":true
+      "iface": 0,
+      "url": "https://10.20.17.19:9090",
+      "token": "kappa123",
+      "verify": false,
+      "reboot": true
    }
 }
