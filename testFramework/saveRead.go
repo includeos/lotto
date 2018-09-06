@@ -31,6 +31,7 @@ func (t *TestConfig) SaveToDisk() error {
 func ReadFromDisk(testPath string) (*TestConfig, error) {
 	test := &TestConfig{}
 	test.testPath = testPath
+	test.Name = path.Base(test.testPath)
 	if err := verifyTestFiles(testPath); err != nil {
 		return test, err
 	}

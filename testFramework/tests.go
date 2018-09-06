@@ -30,6 +30,7 @@ type TestConfig struct {
 	Deploy              bool                   `json:"deploy"`
 	ImageID             string
 	testPath            string
+	Name                string
 	NaclFileShasum      string
 }
 
@@ -66,6 +67,7 @@ func (t *TestConfig) RunTest(level int, env environment.Environment, mother *mot
 	for i := 0; i < level; i++ {
 		var testOutput []byte
 		var testResult TestResult
+		testResult.Name = t.Name
 		var err error
 		// Run test either in client or in host
 		if t.ClientCommandScript != "" {
@@ -85,7 +87,6 @@ func (t *TestConfig) RunTest(level int, env environment.Environment, mother *mot
 			return testResult, fmt.Errorf("could not parse testResults: %v", err)
 		}
 		testResult.Time = time.Now().Format(time.RFC3339)
-		testResult.Name = path.Base(t.testPath)
 
 		// Calculate success
 		testResult.ShouldFail = t.ShouldFail

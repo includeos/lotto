@@ -138,7 +138,7 @@ var RootCmd = &cobra.Command{
 						logrus.Fatalf("Could not create testResults folder: %v", err)
 					}
 					if len(result.Name) > 0 {
-						util.StructToCsvOutput(result, path.Join(folderPath, result.Name))
+						util.StructToCsvOutput(result, path.Join(folderPath, test.Name))
 					}
 					healthName := fmt.Sprintf("instanceHealth-%s", time.Now().Format("2006-01-02"))
 					util.StructToCsvOutput(health, path.Join(folderPath, healthName))
