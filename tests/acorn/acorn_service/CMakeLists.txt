@@ -46,7 +46,6 @@ set(DRIVERS
   virtionet
   vmxnet3
   uplink_log
-  vga_output
   boot_logger
   )
 
@@ -54,6 +53,10 @@ set(PLUGINS
   uplink
   autoconf
   system_log
+  )
+
+set(STDOUT
+  vga_output
   )
 
 # THIRD PARTY LIBRARIES:
