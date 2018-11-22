@@ -20,6 +20,6 @@ clean-starbase*
 !clean-starbase.nacl
 *.csv
 build/
-disk/
+disk/certs
 config.json
 *.grub*
