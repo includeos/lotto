@@ -1,0 +1,65 @@
+Iface outside {
+    index: 0,
+    address: 10.100.0.30,
+    netmask: 255.255.255.128,
+    gateway: 10.100.0.1
+}
+
+Iface inside {
+    index: 1,
+    address: 10.100.0.140,
+    netmask: 255.255.255.128
+}
+
+Gateway gw [
+    {
+        net: 10.100.0.0,
+        netmask: 255.255.255.128,
+        iface: outside
+    },
+    {
+        net: 10.100.0.128,
+        netmask: 255.255.255.128,
+        iface: inside
+    },
+    {
+        net: 0.0.0.0,
+        netmask: 0.0.0.0,
+        iface: outside
+    }
+]
+
+Load_balancer lb {
+    layer: tcp,
+    clients: {
+        iface: outside,
+        port: 90,
+        wait_queue_limit: 1000,
+        session_limit: 1000
+    },
+    servers: {
+        iface: inside,
+        algorithm: round_robin,
+        pool: [
+            {
+                address: 10.100.0.150,
+                port: 8080
+            },
+            {
+                address: 10.100.0.160,
+                port: 8080
+            }
+        ]
+    }
+}
+
+Timer t {
+    interval: 30,
+    data: [
+        timestamp,
+        memory,
+        cpu,
+        stack-sampling,
+        lb
+    ]
+}
