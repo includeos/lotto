@@ -8,13 +8,12 @@ import (
 )
 
 func BuildServiceInDocker(servicePath, uplinkName, dockerContainerName string) error {
-	// Delete all old build and disk folders
+	// Delete all old resources
 	buildFolder := path.Join(servicePath, "build")
-	//diskFolder := path.Join(servicePath, "disk")
 	config := path.Join(servicePath, "config.json")
 	for _, resource := range []string{buildFolder, config} {
 		if err := os.RemoveAll(resource); err != nil {
-			return fmt.Errorf("error removing folder %s: %v", resource, err)
+			return fmt.Errorf("error removing resource %s: %v", resource, err)
 		}
 	}
 
