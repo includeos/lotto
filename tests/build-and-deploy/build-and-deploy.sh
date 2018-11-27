@@ -5,7 +5,7 @@ set -e
 moth="{{.MothershipBinPathAndName}}"
 instAlias={{.OriginalAlias}}
 instID=$($moth inspect-instance $instAlias -o id)
-naclID=$($moth push-nacl tests/build-and-deploy/interface.nacl -o id)
+naclID=$($moth push-nacl tests/build-and-deploy/interface.nacl {{.BuilderID}} -o id)
 tagBase="image"
 
 sent=0
@@ -17,7 +17,7 @@ do
     tag="$tagBase-$i"
     sent=$[$sent + 1]
     # Build
-    imgID=$($moth build Starbase --instance $instID --nacl $naclID --tag $tag --waitAndPrint)
+    imgID=$($moth build Starbase {{.BuilderID}} --instance $instID --nacl $naclID --tag $tag --waitAndPrint)
     # Deploy
     cmdOut+=$($moth deploy $instID $imgID --wait)
     # Check if the instance now runs the built image and that it reports the given tag:

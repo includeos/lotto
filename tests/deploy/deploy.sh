@@ -5,9 +5,9 @@ set -e
 moth="{{.MothershipBinPathAndName}}"
 instAlias={{.OriginalAlias}}
 instID=$($moth inspect-instance $instAlias -o id)
-naclID=$($moth push-nacl tests/deploy/interface.nacl -o id)
+naclID=$($moth push-nacl tests/deploy/interface.nacl {{.BuilderID}} -o id)
 # Build an image to deploy to the instance
-imgID=$($moth build Starbase --instance $instID --nacl $naclID --tag lotto-deploy-test --waitAndPrint)
+imgID=$($moth build Starbase {{.BuilderID}} --instance $instID --nacl $naclID --tag lotto-deploy-test --waitAndPrint)
 
 sent=0
 received=0

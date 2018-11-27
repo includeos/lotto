@@ -50,6 +50,7 @@ type HostCommandTemplate struct {
 	MothershipBinPathAndName string
 	OriginalAlias            string
 	ImageID                  string
+	BuilderID                string
 }
 
 func (tr TestResult) String() string {
@@ -128,7 +129,9 @@ func (t *TestConfig) runHostTest(mother *mothership.Mothership) ([]byte, error) 
 
 	templ := HostCommandTemplate{MothershipBinPathAndName: mother.CLICommand(),
 		OriginalAlias: mother.Alias,
-		ImageID:       t.ImageID}
+		ImageID:       t.ImageID,
+		BuilderID:     mother.BuilderID,
+	}
 	var script bytes.Buffer
 	if err = m.Execute(&script, templ); err != nil {
 		return nil, fmt.Errorf("error executing template: %v", err)
