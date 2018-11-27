@@ -199,7 +199,7 @@ func (m *Mothership) BobsList() (string, error) {
 func (m *Mothership) BobPrepare(ID, providerID string) error {
 	IDEscaped := url.QueryEscape(ID)
 	providerIDEscaped := url.QueryEscape(providerID)
-	request := fmt.Sprintf("bob prepare %s %s", providerIDEscaped, IDEscaped)
+	request := fmt.Sprintf("bob prepare --wait %s %s", providerIDEscaped, IDEscaped)
 	if _, err := m.bin(request); err != nil {
 		return err
 	}
