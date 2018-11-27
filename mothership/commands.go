@@ -181,12 +181,14 @@ func (m *Mothership) StarbaseVersion() (string, error) {
 	return star.Version, nil
 }
 
+// BobProvidersUpdate will update all bobProviders
 func (m *Mothership) BobProvidersUpdate() error {
 	request := fmt.Sprintf("bob update")
 	_, err := m.bin(request)
 	return err
 }
 
+// BobsList list all bobs from all providers and return the output as json
 func (m *Mothership) BobsList() (string, error) {
 	request := fmt.Sprintf("bob list -o json")
 	output, err := m.bin(request)
@@ -196,6 +198,7 @@ func (m *Mothership) BobsList() (string, error) {
 	return output, nil
 }
 
+// BobPrepare takes a BobID and a providerID and tries to prepare the Bob
 func (m *Mothership) BobPrepare(ID, providerID string) error {
 	IDEscaped := url.QueryEscape(ID)
 	providerIDEscaped := url.QueryEscape(providerID)
