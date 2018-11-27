@@ -7,14 +7,13 @@ import (
 	"path"
 )
 
-func BuildServiceInDocker(servicePath, uplinkName, dockerRepo, dockerTag string) error {
-	// Delete all old build and disk folders
+func BuildServiceInDocker(servicePath, uplinkName, dockerContainerName string) error {
+	// Delete all old resources
 	buildFolder := path.Join(servicePath, "build")
-	diskFolder := path.Join(servicePath, "disk")
 	config := path.Join(servicePath, "config.json")
-	for _, resource := range []string{buildFolder, diskFolder, config} {
+	for _, resource := range []string{buildFolder, config} {
 		if err := os.RemoveAll(resource); err != nil {
-			return fmt.Errorf("error removing folder %s: %v", resource, err)
+			return fmt.Errorf("error removing resource %s: %v", resource, err)
 		}
 	}
 
@@ -29,7 +28,7 @@ func BuildServiceInDocker(servicePath, uplinkName, dockerRepo, dockerTag string)
 		return fmt.Errorf("could not get current user info: %v", err)
 	}
 
-	cmdString := fmt.Sprintf("docker run -v %s:/service -u %s:%s %s:%s", servicePath, cur.Uid, cur.Gid, dockerRepo, dockerTag)
+	cmdString := fmt.Sprintf("docker run -v %s:/service -u %s:%s %s", servicePath, cur.Uid, cur.Gid, dockerContainerName)
 	if output, err := ExternalCommand(cmdString); err != nil {
 		return fmt.Errorf("build failed: %s, error: %v", output, err)
 	}

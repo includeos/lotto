@@ -19,8 +19,6 @@ var (
 	builderName      string
 	cmdEnv           string
 	tag              string
-	dockerRepo       string
-	dockerTag        string
 	verboseLogging   bool
 	setUpEnv         bool
 	forceNewStarbase bool
@@ -115,7 +113,7 @@ var RootCmd = &cobra.Command{
 				}
 				// Build and deploy custom service if specified
 				if test.CustomServicePath != "" {
-					if test.ImageID, err = mother.BuildPushAndDeployCustomService(test.CustomServicePath, dockerRepo, dockerTag, test.Deploy); err != nil {
+					if test.ImageID, err = mother.BuildPushAndDeployCustomService(test.CustomServicePath, builderName, test.Deploy); err != nil {
 						logrus.Warningf("could not build and push custom service: %v", err)
 					}
 				}
@@ -166,8 +164,6 @@ func init() {
 	RootCmd.Flags().IntVarP(&numRuns, "numTestRuns", "n", 1, "number of test iterations to run for each test")
 	RootCmd.Flags().IntVarP(&loops, "loops", "l", 1, "number of loops for all tests to run, 0 means infinite")
 	RootCmd.Flags().StringVarP(&tag, "tag", "t", "", "Tag to give folder that stores testResults, if none then testResults are not saved")
-	RootCmd.Flags().StringVarP(&dockerRepo, "dockerRepo", "", "includeos/build", "Docker repo to use when building custom services")
-	RootCmd.Flags().StringVarP(&dockerTag, "dockerTag", "", "dev", "Docker tag to use when building custom services")
 
 	RootCmd.Flags().StringVar(&mothershipConfigPath, "mship-config", "config-mothership.json", "Mothership config file")
 	RootCmd.Flags().StringVar(&envConfigPath, "env-config", "config-environment.json", "Environments config file")
