@@ -17,6 +17,7 @@ const cleanStarbaseImage = "clean-starbase"
 type Mothership struct {
 	Host           string `json:"host"`
 	Port           int    `json:"port"`
+	BuilderID      string `json:"builderid"`
 	NoTLS          bool   `json:"notls,omitempty"`
 	Username       string `json:"username,omitempty"`
 	Password       string `json:"password,omitempty"`

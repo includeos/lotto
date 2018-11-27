@@ -3,6 +3,7 @@ package mothership
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
@@ -19,7 +20,7 @@ func (m *Mothership) pushNacl(naclFileName string) (string, error) {
 	logrus.Infof("Pushing NaCl: %s", naclFileName)
 	fileName := path.Base(naclFileName)
 	targetName := fmt.Sprintf("lotto-test-%s", strings.TrimSuffix(fileName, filepath.Ext(fileName)))
-	request := fmt.Sprintf("push-nacl %s --name %s -o id", naclFileName, targetName)
+	request := fmt.Sprintf("push-nacl %s %s --name %s -o id", naclFileName, m.BuilderID, targetName)
 	response, err := m.bin(request)
 	if err != nil {
 		return "", fmt.Errorf("could not push nacl %s: %v", naclFileName, err)
@@ -60,7 +61,7 @@ func (m *Mothership) pushUplink(file, name string) error {
 func (m *Mothership) build(naclID string) (string, error) {
 	logrus.Infof("Building image with nacl: %s", naclID)
 	m.lastBuildTag = fmt.Sprintf("lotto-%s", time.Now().Format("20060102150405"))
-	request := fmt.Sprintf("build --waitAndPrint -n %s -u %s --tag %s Starbase", naclID, m.uplinkname, m.lastBuildTag)
+	request := fmt.Sprintf("build --waitAndPrint -n %s -u %s --tag %s Starbase %s", naclID, m.uplinkname, m.lastBuildTag, m.BuilderID)
 	checksum, err := m.bin(request)
 	if err != nil {
 		return "", fmt.Errorf("error building: %v", err)
@@ -178,4 +179,29 @@ func (m *Mothership) StarbaseVersion() (string, error) {
 		logrus.Warning("Starbase version is empty")
 	}
 	return star.Version, nil
+}
+
+func (m *Mothership) BobProvidersUpdate() error {
+	request := fmt.Sprintf("bob update")
+	_, err := m.bin(request)
+	return err
+}
+
+func (m *Mothership) BobsList() (string, error) {
+	request := fmt.Sprintf("bob list -o json")
+	output, err := m.bin(request)
+	if err != nil {
+		return output, err
+	}
+	return output, nil
+}
+
+func (m *Mothership) BobPrepare(ID, providerID string) error {
+	IDEscaped := url.QueryEscape(ID)
+	providerIDEscaped := url.QueryEscape(providerID)
+	request := fmt.Sprintf("bob prepare %s %s", providerIDEscaped, IDEscaped)
+	if _, err := m.bin(request); err != nil {
+		return err
+	}
+	return nil
 }

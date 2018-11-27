@@ -16,6 +16,7 @@ import (
 )
 
 var (
+	builderName      string
 	cmdEnv           string
 	tag              string
 	dockerRepo       string
@@ -33,7 +34,7 @@ var (
 )
 
 var RootCmd = &cobra.Command{
-	Use:   "lotto TEST-FOLDER-PATH [TEST-FOLDER-PATH...]",
+	Use:   "lotto <test-folder-path> [test-folder-path...]",
 	Short: "Run tests by specifying test folders",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -64,6 +65,11 @@ var RootCmd = &cobra.Command{
 		if err != nil {
 			logrus.Fatalf("Could not set up Mothership: %v", err)
 		}
+		// Prepare builder
+		if err = mother.PrepareBuilder(builderName); err != nil {
+			logrus.Fatalf("Could not prepare builder with name: %s: %v", builderName, err)
+		}
+		logrus.Infof("Prepared builder with name: %s on Mothership", builderName)
 
 		// Only create a new starbase if requested, or there is no connected starbase to use
 		if forceNewStarbase || !mother.CheckStarbaseIDInUse() {
@@ -149,6 +155,8 @@ var RootCmd = &cobra.Command{
 }
 
 func init() {
+	RootCmd.Flags().StringVarP(&builderName, "buildername", "b", "", "The IncludeOS builder to use for running the test")
+	RootCmd.MarkFlagRequired("buildername")
 	RootCmd.Flags().StringVar(&cmdEnv, "env", "fusion", "environment to use")
 	RootCmd.Flags().BoolVarP(&verboseLogging, "verbose", "v", false, "verobse output")
 	RootCmd.Flags().BoolVar(&setUpEnv, "create-env", false, "set up environment")

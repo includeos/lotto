@@ -157,3 +157,49 @@ func (m *Mothership) BuildPushAndDeployCustomService(customServicePath, dockerRe
 	}
 	return imageID, nil
 }
+
+func (m *Mothership) PrepareBuilder(builderName string) error {
+	logrus.Debugf("Preparing builder with name: %s", builderName)
+	// First update all providers
+	if err := m.BobProvidersUpdate(); err != nil {
+		return fmt.Errorf("error updating providers: %v", err)
+	}
+	// Get a list of all available bobs
+	logrus.Debugf("Getting list of all available bobs")
+	bobsJson, err := m.BobsList()
+	if err != nil {
+		return fmt.Errorf("error getting list of all bobs")
+	}
+	// Find the ID and provider of the builder that we want
+	var bobs []struct {
+		ID       string `json:"id"`
+		Name     string `json:"name"`
+		Provider string `json:"providerId"`
+	}
+	if err = json.Unmarshal([]byte(bobsJson), &bobs); err != nil {
+		return fmt.Errorf("error unmarshaling bobs: %v", err)
+	}
+	// Loop through all bobs looking for builderName
+	logrus.Debugf("Looking for bob that matches builderName: %s", builderName)
+	var builderID, providerID string
+	var matchFound bool
+	for _, bob := range bobs {
+		if bob.Name == builderName {
+			logrus.Debugf("Found bob that matches, builderID: %s, providerID: %s", bob.ID, bob.Provider)
+			builderID = bob.ID
+			providerID = bob.Provider
+			matchFound = true
+			break
+		}
+	}
+	if !matchFound || len(builderID) == 0 || len(providerID) == 0 {
+		return fmt.Errorf("problem with match: matchFound: %t builderID: %s providerID: %s", matchFound, builderID, providerID)
+	}
+	// Prepare the builder that was just found
+	if err = m.BobPrepare(builderID, providerID); err != nil {
+		return fmt.Errorf("error preparing bob with ID: %s and providerID: %s: %v", builderID, providerID, err)
+	}
+	logrus.Debugf("setting Mothership builderID to: %s", builderID)
+	m.BuilderID = builderID
+	return nil
+}
