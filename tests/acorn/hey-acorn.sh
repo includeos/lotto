@@ -3,13 +3,20 @@
 # Returns rate and average response time
 
 # Input values to cmd
-sent=10000
-concurrency=200
+sent=1000
+concurrency=100
 cmdOut=$(docker run --rm rcmorano/docker-hey -n $sent -c $concurrency http://10.100.0.30)
 
 # Parse output, important to set a default value if the command over fails
+receivedStatus=$(printf "%s" "$cmdOut" | awk '/responses/ {print $1}' )
 received=$(printf "%s" "$cmdOut" | awk '/responses/ {print $2}' )
-if [ -z $received ]; then received=0; fi
+
+if [[ "$receivedStatus" != "[200]" ]]; then
+    received=0;
+elif [ -z $received ]; then
+    received=0;
+fi
+
 rate=$(printf "%s" "$cmdOut" | awk '/Requests\/sec/ {print $2}' )
 if [ -z $rate ]; then rate=0; fi
 avg=$(printf "%s" "$cmdOut" | awk '/Average/ {print $2}' )
