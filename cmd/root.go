@@ -98,6 +98,7 @@ var RootCmd = &cobra.Command{
 			}
 		}
 		// Run the tests
+		var testFailed bool
 		// loops flag taken into account
 		for loopIndex := 0; loopIndex < loops || loops == 0; loopIndex++ {
 			logrus.Infof("Test loop nr: %d, numRuns: %d", loopIndex+1, numRuns)
@@ -107,6 +108,7 @@ var RootCmd = &cobra.Command{
 					if test.NaclFile != "" {
 						if test.NaclFileShasum, test.ImageID, err = mother.DeployNacl(test.NaclFile); err != nil {
 							logrus.Warningf("Could not deploy: %v", err)
+							testFailed = true
 							continue
 						}
 					}
@@ -114,6 +116,7 @@ var RootCmd = &cobra.Command{
 				// Build and deploy custom service if specified
 				if test.CustomServicePath != "" {
 					if test.ImageID, err = mother.BuildPushAndDeployCustomService(test.CustomServicePath, builderName, test.Deploy); err != nil {
+						testFailed = true
 						logrus.Warningf("could not build and push custom service: %v", err)
 					}
 				}
@@ -121,6 +124,7 @@ var RootCmd = &cobra.Command{
 				// numRuns flag taken into account
 				result, err := test.RunTest(numRuns, env, mother)
 				if err != nil {
+					testFailed = true
 					logrus.Warningf("error running test %v", err)
 				}
 				// Process results
@@ -148,6 +152,10 @@ var RootCmd = &cobra.Command{
 					util.StructToCsvOutput(health, path.Join(folderPath, healthName))
 				}
 			}
+		}
+
+		if testFailed {
+			logrus.Fatal("A test has failed")
 		}
 	},
 }
