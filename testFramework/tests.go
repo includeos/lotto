@@ -139,7 +139,7 @@ func (t *TestConfig) runHostTest(mother *mothership.Mothership) ([]byte, error) 
 
 	out, err := util.ExternalCommandInput(html.UnescapeString(script.String()), nil)
 	if err != nil {
-		return out, fmt.Errorf("Host test external command %s failed: %v", script.String(), err)
+		return out, fmt.Errorf("Host test external command failed: %v", err)
 	}
 	// Unmarshal test results into testResult
 	return out, nil
