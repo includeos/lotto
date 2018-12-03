@@ -2,10 +2,14 @@
 # Script used for performing http requests
 # Returns rate and average response time
 
+# Prerequesites:
+# Requires a web server to run on client3
+
 # Input values to cmd
-sent=10000
+sent=1000
 concurrency=200
-cmdOut=$(docker run --rm rcmorano/docker-hey -n $sent -c $concurrency http://10.100.0.30:1500)
+timeout=2
+cmdOut=$(docker run --rm rcmorano/docker-hey -t $timeout -n $sent -c $concurrency http://10.100.0.30:1500)
 
 # Parse output, important to set a default value if the command over fails
 received=$(printf "%s" "$cmdOut" | awk '/responses/ {print $2}' )

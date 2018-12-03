@@ -2,8 +2,12 @@
   "clientcommandscript": "hey-get-file-test-with-sleep.sh",
   "naclfile": "dnat-snat.nacl",
   "setup": {
-      "client1": "install_hey.sh"
-    },
+    "client1": "install_hey.sh",
+    "client4": "apache_server_and_file_setup.sh"
+  },
+  "cleanup": {
+    "client4": "apache_server_cleanup.sh"
+  },
   "level1": 1,
   "level2": 2,
   "level3": 3

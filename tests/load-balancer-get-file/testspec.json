@@ -2,7 +2,13 @@
   "clientcommandscript": "hey-get-file-via-lb-with-sleep.sh",
   "naclfile": "load-balancer.nacl",
   "setup": {
-  	"client1": "install_hey.sh"
+  	"client1": "install_hey.sh",
+    "client3": "apacher_server_and_file_setup.sh",
+    "client4": "apacher_server_and_file_setup.sh"
+  },
+  "cleanup": {
+    "client3": "apacher_server_cleanup.sh",
+    "client4": "apacher_server_cleanup.sh"
   },
   "level1": 1,
   "level2": 2,

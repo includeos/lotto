@@ -22,6 +22,7 @@ type TestConfig struct {
 	ClientCommandScript string                 `json:"clientcommandscript"`
 	HostCommandScript   string                 `json:"hostcommandscript"`
 	Setup               environment.SSHClients `json:"setup"`
+	Cleanup             environment.SSHClients `json:"cleanup"`
 	Level1              int                    `json:"level1"`
 	Level2              int                    `json:"level2"`
 	Level3              int                    `json:"level3"`
@@ -59,10 +60,10 @@ func (tr TestResult) String() string {
 
 // RunTest runs the clientCmdScript on either host or client1 level number of times and returns a TestResult
 func (t *TestConfig) RunTest(level int, env environment.Environment, mother *mothership.Mothership) (TestResult, error) {
-	if err := t.prepareTest(env); err != nil {
+	if err := t.runScriptsOnClients(env, t.Setup); err != nil {
 		return TestResult{}, fmt.Errorf("error preparing test: %v", err)
 	}
-	defer t.cleanupTest(mother)
+	defer t.cleanupTest(mother, env)
 	logrus.Infof("Starting test: %s", path.Base(t.testPath))
 	var results []TestResult
 	for i := 0; i < level; i++ {
@@ -127,10 +128,11 @@ func (t *TestConfig) runHostTest(mother *mothership.Mothership) ([]byte, error) 
 		return nil, fmt.Errorf("error parsing template: %v", err)
 	}
 
-	templ := HostCommandTemplate{MothershipBinPathAndName: mother.CLICommand(),
-		OriginalAlias: mother.Alias,
-		ImageID:       t.ImageID,
-		BuilderID:     mother.BuilderID,
+	templ := HostCommandTemplate{
+		MothershipBinPathAndName: mother.CLICommand(),
+		OriginalAlias:            mother.Alias,
+		ImageID:                  t.ImageID,
+		BuilderID:                mother.BuilderID,
 	}
 	var script bytes.Buffer
 	if err = m.Execute(&script, templ); err != nil {
@@ -145,22 +147,24 @@ func (t *TestConfig) runHostTest(mother *mothership.Mothership) ([]byte, error) 
 	return out, nil
 }
 
-func (t *TestConfig) prepareTest(env environment.Environment) error {
-	t.Setup.RunFuncOnAllClients(func(input string) string {
-		return path.Join(t.testPath, path.Base(input))
-	})
-	t.Setup.PopulateSlice()
-	for i, script := range t.Setup.ClientSlice {
-		if script != "" {
-			if output, err := env.RunClientCmdScript(i+1, script); err != nil {
-				return fmt.Errorf("Could not run ClientCmdScript: %s: %v", string(output), err)
-			}
+func (t *TestConfig) runScriptsOnClients(env environment.Environment, scripts environment.SSHClients) error {
+	for i := 1; i <= 4; i++ {
+		scriptName, err := scripts.GetClientByInt(i)
+		if err != nil {
+			return fmt.Errorf("error getting client%d: %v", i, err)
+		} else if scriptName == "" {
+			continue
+		}
+		logrus.Debugf("running script: %s on client%d", scriptName, i)
+		scriptPath := path.Join(t.testPath, scriptName)
+		if output, err := env.RunClientCmdScript(i, scriptPath); err != nil {
+			return fmt.Errorf("error running script %s on client%d: out: %s: %v", scriptPath, i, output, err)
 		}
 	}
 	return nil
 }
 
-func (t *TestConfig) cleanupTest(mother *mothership.Mothership) {
+func (t *TestConfig) cleanupTest(mother *mothership.Mothership, env environment.Environment) {
 	// Remove NaCl
 	if len(t.NaclFileShasum) > 0 {
 		if err := mother.DeleteNacl(t.NaclFileShasum); err != nil {
@@ -173,6 +177,10 @@ func (t *TestConfig) cleanupTest(mother *mothership.Mothership) {
 		if err := mother.DeleteImage(t.ImageID); err != nil {
 			logrus.Errorf("could not clean up image: %v", err)
 		}
+	}
+
+	if err := t.runScriptsOnClients(env, t.Cleanup); err != nil {
+		logrus.Errorf("Error cleaning up: %v", err)
 	}
 }
 
