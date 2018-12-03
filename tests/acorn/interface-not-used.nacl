@@ -1,7 +1,0 @@
-Iface outside {
-    address: 10.100.0.30,
-    netmask: 255.255.255.128,
-    gateway: 10.100.0.1,
-    dns: 1.1.1.1,
-    index: 0
-}

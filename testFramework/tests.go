@@ -26,6 +26,7 @@ type TestConfig struct {
 	ShouldFail          bool                   `json:"shouldfail"`
 	CustomServicePath   string                 `json:"customservicepath"`
 	NoDeploy            bool                   `json:"nodeploy"`
+	SkipRebuild         bool
 	ImageID             string
 	testPath            string
 	Name                string
@@ -62,7 +63,6 @@ func (t *TestConfig) RunTest(level int, env environment.Environment, mother *mot
 		return TestResult{}, fmt.Errorf("error preparing test: %v", err)
 	}
 	defer t.cleanupTest(mother, env)
-	logrus.Infof("Starting test: %s", path.Base(t.testPath))
 	var results []TestResult
 	for i := 0; i < level; i++ {
 		var testOutput []byte
