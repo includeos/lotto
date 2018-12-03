@@ -1,4 +1,4 @@
 {
     "hostcommandscript": "upgrade.sh",
-    "deploy": false
+    "nodeploy": true
 }

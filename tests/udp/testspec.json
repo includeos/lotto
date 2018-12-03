@@ -1,6 +1,5 @@
 {
     "customservicepath": "udp_service",
-    "deploy": true,
     "clientcommandscript": "udp_nping.sh",
     "setup": {
         "client1": "install_nmap.sh"

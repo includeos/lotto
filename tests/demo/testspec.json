@@ -1,9 +1,7 @@
 {
     "customservicepath": "demo_service",
-    "deploy": true,
     "clientcommandscript": "hey-demo.sh",
     "setup": {
         "client1": "install_hey.sh"
     }
 }
-  

@@ -1,5 +1,4 @@
 {
     "hostcommandscript": "download-image-for-hypervisors.sh",
-    "deploy": false
+    "nodeploy": true
   }
-  

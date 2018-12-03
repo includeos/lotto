@@ -1,5 +1,5 @@
 {
   "customservicepath": "panicking_service",
   "hostcommandscript": "panicCheck.sh",
-  "deploy": false
+  "nodeploy": true
 }

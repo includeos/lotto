@@ -1,4 +1,4 @@
 {
   "hostcommandscript": "alias.sh",
-  "deploy": false
+  "nodeploy": true
 }
