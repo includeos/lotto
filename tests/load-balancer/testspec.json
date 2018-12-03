@@ -2,7 +2,13 @@
   "clientcommandscript": "nping.sh",
   "naclfile": "load-balancer.nacl",
   "setup": {
-  	"client1": "install_nmap.sh"
+  	"client1": "install_nmap.sh",
+    "client3": "apache_server_setup.sh",
+    "client4": "apache_server_setup.sh"
+  },
+  "cleanup": {
+    "client3": "apache_server_cleanup.sh",
+    "client4": "apache_server_cleanup.sh"
   },
   "level1": 1,
   "level2": 2,

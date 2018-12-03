@@ -18,11 +18,10 @@ type UplinkInfo struct {
 }
 
 type SSHClients struct {
-	Client1     string `json:"client1"`
-	Client2     string `json:"client2"`
-	Client3     string `json:"client3"`
-	Client4     string `json:"client4"`
-	ClientSlice []string
+	Client1 string `json:"client1"`
+	Client2 string `json:"client2"`
+	Client3 string `json:"client3"`
+	Client4 string `json:"client4"`
 }
 
 // GetClientByInt returns the contents for a client specified by number
@@ -38,30 +37,6 @@ func (c *SSHClients) GetClientByInt(num int) (string, error) {
 		return c.Client4, nil
 	default:
 		return "", fmt.Errorf("Client num %d does not exist", num)
-	}
-}
-
-func (c *SSHClients) PopulateSlice() {
-	c.ClientSlice = make([]string, 4)
-	c.ClientSlice[0] = c.Client1
-	c.ClientSlice[1] = c.Client2
-	c.ClientSlice[2] = c.Client3
-	c.ClientSlice[3] = c.Client4
-}
-
-// RunFuncOnAllClients takes a function and updates the strings for all existing clients
-func (c *SSHClients) RunFuncOnAllClients(f func(string) string) {
-	if c.Client1 != "" {
-		c.Client1 = f(c.Client1)
-	}
-	if c.Client2 != "" {
-		c.Client2 = f(c.Client2)
-	}
-	if c.Client3 != "" {
-		c.Client3 = f(c.Client3)
-	}
-	if c.Client4 != "" {
-		c.Client4 = f(c.Client4)
 	}
 }
 
