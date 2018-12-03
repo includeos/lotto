@@ -7,13 +7,13 @@
 # - Produce a 1G text file with random content:
 # 	base64 /dev/urandom | head -c 1G > file.txt
 # - Start apache server on 8080 (returns content of home folder):
-# 	docker run -dit --name my-apache-app -p 8080:80 -v "$PWD":/usr/local/apache2/htdocs/ httpd:2.4
+# 	docker run --rm -dit --name my-apache-app -p 8080:80 -v "$PWD":/usr/local/apache2/htdocs/ httpd:2.4
 
 # Input values to cmd
-sent=1000
+sent=100
 concurrency=50
 
-cmdOut=$(docker run --rm rcmorano/docker-hey -n $sent -c $concurrency http://10.100.0.30:1600/file.txt)
+cmdOut=$(docker run --rm rcmorano/docker-hey -n $sent -c $concurrency http://10.100.0.30:1600/1GB_file.txt)
 
 # Parse output, important to set a default value if the command over fails
 received=$(printf "%s" "$cmdOut" | awk '/responses/ {print $2}' )
