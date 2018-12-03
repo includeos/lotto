@@ -2,8 +2,12 @@
   "clientcommandscript": "hey-http-test.sh",
   "naclfile": "dnat-snat.nacl",
   "setup": {
-      "client1": "install_hey.sh"
+      "client1": "install_hey.sh",
+      "client3": "apache_server_setup.sh"
     },
+  "cleanup": {
+    "client3": "apache_server_cleanup.sh"
+  },
   "level1": 1,
   "level2": 2,
   "level3": 3
