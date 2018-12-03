@@ -7,8 +7,5 @@
   },
   "cleanup": {
     "client4": "apache_server_cleanup.sh"
-  },
-  "level1": 1,
-  "level2": 2,
-  "level3": 3
+  }
 }

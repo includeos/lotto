@@ -1,7 +1,4 @@
 {
   "clientcommandscript": "ping.sh",
-  "naclfile": "ipsnat.nacl",
-  "level1": 1,
-  "level2": 2,
-  "level3": 3
+  "naclfile": "ipsnat.nacl"
 }

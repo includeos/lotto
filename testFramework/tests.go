@@ -23,9 +23,6 @@ type TestConfig struct {
 	HostCommandScript   string                 `json:"hostcommandscript"`
 	Setup               environment.SSHClients `json:"setup"`
 	Cleanup             environment.SSHClients `json:"cleanup"`
-	Level1              int                    `json:"level1"`
-	Level2              int                    `json:"level2"`
-	Level3              int                    `json:"level3"`
 	ShouldFail          bool                   `json:"shouldfail"`
 	CustomServicePath   string                 `json:"customservicepath"`
 	Deploy              bool                   `json:"deploy"`
