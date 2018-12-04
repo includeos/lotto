@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bclicn/color"
+	"github.com/logrusorgru/aurora"
 )
 
 const width = 80
@@ -28,9 +28,9 @@ func (t PrettyTest) PrintHeader() {
 func (t PrettyTest) PrintResult(result bool) {
 	var output string
 	if result {
-		output = color.BGreen("PASS")
+		output = aurora.BgGreen(" PASS ").String()
 	} else {
-		output = color.BRed("FAIL")
+		output = aurora.BgRed(" FAIL ").String()
 	}
 	fmt.Printf("Test result: [ %s ]\n", output)
 }
