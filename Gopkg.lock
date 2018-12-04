@@ -2,47 +2,71 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:c16f511247fb7dd5b3e8428bed24b9f74473f343b3fb7c14763b47f567feb8a5"
+  name = "github.com/bclicn/color"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "108f2023dc84f1f9e64f246fa3997993971b2706"
+
+[[projects]]
+  digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
+  pruneopts = "UT"
   revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
   version = "v1.0"
 
 [[projects]]
+  digest = "1:9e9193aa51197513b3abcb108970d831fbcf40ef96aa845c4f03276e1fa316d2"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
+  pruneopts = "UT"
   revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
   version = "v1.0.5"
 
 [[projects]]
+  digest = "1:982714fa3eaafd4251f5ccf3d133b706ad742b86c195d594e1a86050a02f87a8"
   name = "github.com/spf13/cobra"
   packages = ["."]
+  pruneopts = "UT"
   revision = "a1f051bc3eba734da4772d60e2d677f47cf93ef4"
   version = "v0.0.2"
 
 [[projects]]
+  digest = "1:1b21a2b4058a779f290c7341cd93267492e0ecea6c8b54f64a4a5fd7ff131034"
   name = "github.com/spf13/pflag"
   packages = ["."]
+  pruneopts = "UT"
   revision = "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
   version = "v1.0.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:3f3a05ae0b95893d90b9b3b5afdb79a9b3d96e4e36e099d841ae602e4aca0da8"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
+  pruneopts = "UT"
   revision = "f70185d77e8278766928032ee1355e3da47e7181"
 
 [[projects]]
   branch = "master"
+  digest = "1:4eb196f937ca6319f4095e0373b346aeeb4e3377e0200e7bb51daac0b5ec964c"
   name = "golang.org/x/sys"
   packages = [
     "unix",
-    "windows"
+    "windows",
   ]
+  pruneopts = "UT"
   revision = "3b87a42e500a6dc65dae1a55d0b641295971163e"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3fc5c01da63b04f8d296cf6c62d1ee5f0e9c6e81d111b27e37277bd80289e5a0"
+  input-imports = [
+    "github.com/bclicn/color",
+    "github.com/sirupsen/logrus",
+    "github.com/spf13/cobra",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

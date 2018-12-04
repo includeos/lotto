@@ -138,7 +138,7 @@ func (m *Mothership) waitUntilStarbaseConnects(tag string) (string, error) {
 
 // BuildPushAndDeployCustomService will build a custom service using docker, push it and deploy if the argument
 // deploy is not set to false
-func (m *Mothership) BuildPushAndDeployCustomService(customServicePath, builderName string, deploy bool) (string, error) {
+func (m *Mothership) BuildPushAndDeployCustomService(customServicePath, builderName string, noDeploy bool) (string, error) {
 	imageName := path.Base(customServicePath)
 	logrus.Infof("Building custom service %s", imageName)
 	imagePath := path.Join(customServicePath, "build", imageName)
@@ -150,7 +150,7 @@ func (m *Mothership) BuildPushAndDeployCustomService(customServicePath, builderN
 	if err != nil {
 		return "", fmt.Errorf("could not push image %s: %v", imagePath, err)
 	}
-	if deploy {
+	if !noDeploy {
 		if err := m.deploy(imageID); err != nil {
 			return "", fmt.Errorf("error deploying custom service: %v", err)
 		}

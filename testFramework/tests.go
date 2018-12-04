@@ -23,12 +23,10 @@ type TestConfig struct {
 	HostCommandScript   string                 `json:"hostcommandscript"`
 	Setup               environment.SSHClients `json:"setup"`
 	Cleanup             environment.SSHClients `json:"cleanup"`
-	Level1              int                    `json:"level1"`
-	Level2              int                    `json:"level2"`
-	Level3              int                    `json:"level3"`
 	ShouldFail          bool                   `json:"shouldfail"`
 	CustomServicePath   string                 `json:"customservicepath"`
-	Deploy              bool                   `json:"deploy"`
+	NoDeploy            bool                   `json:"nodeploy"`
+	SkipRebuild         bool
 	ImageID             string
 	testPath            string
 	Name                string
@@ -60,11 +58,11 @@ func (tr TestResult) String() string {
 
 // RunTest runs the clientCmdScript on either host or client1 level number of times and returns a TestResult
 func (t *TestConfig) RunTest(level int, env environment.Environment, mother *mothership.Mothership) (TestResult, error) {
+	// Prepare test before run
 	if err := t.runScriptsOnClients(env, t.Setup); err != nil {
 		return TestResult{}, fmt.Errorf("error preparing test: %v", err)
 	}
 	defer t.cleanupTest(mother, env)
-	logrus.Infof("Starting test: %s", path.Base(t.testPath))
 	var results []TestResult
 	for i := 0; i < level; i++ {
 		var testOutput []byte

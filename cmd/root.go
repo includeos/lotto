@@ -1,16 +1,8 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-	"path"
-	"strings"
-	"time"
-
 	"github.com/mnordsletten/lotto/environment"
 	"github.com/mnordsletten/lotto/mothership"
-	"github.com/mnordsletten/lotto/testFramework"
-	"github.com/mnordsletten/lotto/util"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -79,83 +71,18 @@ var RootCmd = &cobra.Command{
 		}
 
 		// Test setup
-		// Filter out the tests that should be skipped (folder name starts with "skip")
-		var testsToRun []string
-		for _, arg := range args {
-			// Skipping tests starting with "tests/skip"
-			if !strings.HasPrefix(arg, "tests/skip") {
-				testsToRun = append(testsToRun, arg)
-			} else {
-				logrus.Warningf("Skipping test %s", arg)
-			}
-		}
-		// Get the TestConfig for every test that should be run
-		tests := make([]*testFramework.TestConfig, len(testsToRun))
-		for i, testPath := range testsToRun {
-			tests[i], err = testFramework.ReadFromDisk(testPath)
-			if err != nil {
-				logrus.Fatalf("Could not read test spec: %v", err)
-			}
-		}
+		tests, err := getTestsToRun(args)
 		// Run the tests
-		var testFailed bool
-		// loops flag taken into account
 		for loopIndex := 0; loopIndex < loops || loops == 0; loopIndex++ {
 			logrus.Infof("Test loop nr: %d, numRuns: %d", loopIndex+1, numRuns)
 			for _, test := range tests {
-				// Boot NaCl service to starbase, only if NaclFile is specified
-				if !skipRebuildTest {
-					if test.NaclFile != "" {
-						if test.NaclFileShasum, test.ImageID, err = mother.DeployNacl(test.NaclFile); err != nil {
-							logrus.Warningf("Could not deploy: %v", err)
-							testFailed = true
-							continue
-						}
-					}
+				if skipRebuildTest {
+					test.SkipRebuild = true
 				}
-				// Build and deploy custom service if specified
-				if test.CustomServicePath != "" {
-					if test.ImageID, err = mother.BuildPushAndDeployCustomService(test.CustomServicePath, builderName, test.Deploy); err != nil {
-						testFailed = true
-						logrus.Warningf("could not build and push custom service: %v", err)
-					}
-				}
-				// Run client command
-				// numRuns flag taken into account
-				result, err := test.RunTest(numRuns, env, mother)
-				if err != nil {
-					testFailed = true
-					logrus.Warningf("error running test %v", err)
-				}
-				// Process results
-				logrus.Info(result)
-				health := mother.CheckInstanceHealth()
-				logrus.Info(health)
-				if len(tag) > 0 {
-					// Create folder with name of versions getting tested
-					mVersion, err := mother.ServerVersion()
-					if err != nil {
-						logrus.Warningf("error getting mothership server version: %v", err)
-					}
-					iosVersion, err := mother.StarbaseVersion()
-					if err != nil {
-						logrus.Warningf("error getting starbase IncludeOS version: %v", err)
-					}
-					folderPath := path.Join("testResults", fmt.Sprintf("mothership.%s_IncludeOS.%s_%s", mVersion, iosVersion, tag))
-					if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
-						logrus.Fatalf("Could not create testResults folder: %v", err)
-					}
-					if len(result.Name) > 0 {
-						util.StructToCsvOutput(result, path.Join(folderPath, test.Name))
-					}
-					healthName := fmt.Sprintf("instanceHealth-%s", time.Now().Format("2006-01-02"))
-					util.StructToCsvOutput(health, path.Join(folderPath, healthName))
+				if err = testProcedure(test, env, mother); err != nil {
+					logrus.Warningf("error running test %s: %v", test.Name, err)
 				}
 			}
-		}
-
-		if testFailed {
-			logrus.Fatal("A test has failed")
 		}
 	},
 }
