@@ -56,6 +56,38 @@ func (tr TestResult) String() string {
 	return fmt.Sprintf("Result: %.1f%% %d/%d, Name: %s, ShouldFail: %t", tr.SuccessPercentage, tr.Received, tr.Sent, tr.Name, tr.ShouldFail)
 }
 
+func (c TestConfig) String() string {
+	var output string
+	var width = 15
+	output = output + fmt.Sprintf("%-*s %s\n", width, "Name:", c.Name)
+
+	if c.ClientCommandScript != "" {
+		output = output + fmt.Sprintf("%-*s [X] ClientCommandScript / [ ] HostCommandScript\n"+
+			"%-*s Path: %s\n", width, "Script:", width, "", c.ClientCommandScript)
+	} else if c.HostCommandScript != "" {
+		output = output + fmt.Sprintf("%-*s [ ] ClientCommandScript / [X] HostCommandScript\n"+
+			"%-*s Path: %s\n", width, "Script:", width, "", c.HostCommandScript)
+	}
+	output = output + fmt.Sprintf("%-*s %s\n", width, "Custom service:", c.CustomServicePath)
+
+	if c.ShouldFail {
+		output = output + fmt.Sprintf("%-*s [X]\n", width, "Should fail:")
+	} else {
+		output = output + fmt.Sprintf("%-*s [ ]\n", width, "Should fail:")
+	}
+	if c.NoDeploy {
+		output = output + fmt.Sprintf("%-*s [X]\n", width, "No deploy:")
+	} else {
+		output = output + fmt.Sprintf("%-*s [ ]\n", width, "No deploy:")
+	}
+	if c.SkipRebuild {
+		output = output + fmt.Sprintf("%-*s [X]\n", width, "Skip rebuild:")
+	} else {
+		output = output + fmt.Sprintf("%-*s [ ]\n", width, "Skip rebuild:")
+	}
+	return output
+}
+
 // RunTest runs the clientCmdScript on either host or client1 level number of times and returns a TestResult
 func (t *TestConfig) RunTest(level int, env environment.Environment, mother *mothership.Mothership) (TestResult, error) {
 	// Prepare test before run

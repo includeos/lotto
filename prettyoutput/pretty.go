@@ -20,9 +20,11 @@ func NewPrettyTest(name string) PrettyTest {
 }
 
 func (t PrettyTest) PrintHeader() {
-	fmt.Printf("%s\n"+
-		"Test: %s\n"+
-		"Test-info: blah blah\n", separator, t.Name)
+	fmt.Println(separator)
+}
+
+func (t PrettyTest) Print(x interface{}) {
+	fmt.Println(x)
 }
 
 func (t PrettyTest) PrintResult(result bool) {

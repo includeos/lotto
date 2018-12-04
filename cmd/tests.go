@@ -14,6 +14,7 @@ import (
 func testProcedure(test *testFramework.TestConfig, env environment.Environment, mother *mothership.Mothership) error {
 	pretty := pretty.NewPrettyTest(test.Name)
 	pretty.PrintHeader()
+	pretty.Print(test)
 
 	// BUILD & DEPLOY. 3 options:
 	// 1. Push NaCl and build on Mothership
