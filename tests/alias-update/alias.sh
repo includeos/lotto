@@ -23,7 +23,7 @@ do
 
     sent=$[$sent + 1]
     # Change alias
-    cmdOut=$($moth instance-alias $ID $alias)
+    raw=$($moth instance-alias $ID $alias)
     # Verify that the alias was actually changed
     existingAlias=$($moth inspect-instance $ID -o json | jq -r '.alias')
     if [[ "$existingAlias" == "$alias" ]]; then
@@ -33,19 +33,27 @@ do
 done
 
 # Reset to original alias
-cmdOut+=$($moth instance-alias $ID $instAlias)
+raw+=$($moth instance-alias $ID $instAlias)
 
-# If none of the commands above failed it means that we were successful
-rate=0.1
-avg=0
+# All commands above succeeded
+result=true
 
-jq  --arg dataSent $sent \
-    --arg dataReceived $received \
-    --arg dataRate $rate \
-    --arg dataAvg $avg \
-    --arg dataFull "$cmdOut" \
-    '. | .["sent"]=($dataSent|tonumber) |
-    .["received"]=($dataReceived|tonumber) |
-    .["rate"]=($dataRate|tonumber) |
-    .["avg"]=($dataAvg|tonumber) |
-    .["raw"]=$dataFull'<<<'{}'
+if [ -z $result ]; then result=false; fi
+if [ -z $sent ]; then sent=0; fi
+if [ -z $received ]; then received=0; fi
+if [ -z $rate ]; then rate=0; fi
+if [ -z $raw ]; then raw=""; fi
+
+jq \
+  --argjson result $result \
+  --argjson sent $sent \
+  --argjson received $received \
+  --argjson rate $rate \
+  --arg raw "$raw" \
+  '. |
+  .["result"]=$result |
+  .["sent"]=$sent |
+  .["received"]=$received |
+  .["rate"]=$rate |
+  .["raw"]=$raw
+  '<<<'{}'
