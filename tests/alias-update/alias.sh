@@ -1,6 +1,5 @@
 # alias update script
 # Script used for checking that changing the alias of the instance works
-set -e
 
 moth="{{.MothershipBinPathAndName}}"
 instAlias={{.OriginalAlias}}
@@ -23,7 +22,7 @@ do
 
     sent=$[$sent + 1]
     # Change alias
-    raw=$($moth instance-alias $ID $alias)
+    raw+=$($moth instance-alias $ID $alias 2>&1)
     # Verify that the alias was actually changed
     existingAlias=$($moth inspect-instance $ID -o json | jq -r '.alias')
     if [[ "$existingAlias" == "$alias" ]]; then
@@ -33,10 +32,12 @@ do
 done
 
 # Reset to original alias
-raw+=$($moth instance-alias $ID $instAlias)
+raw+=$($moth instance-alias $ID $instAlias 2>&1)
 
 # All commands above succeeded
-result=true
+if [ "$sent" -eq "$received" ]; then
+  result=true
+fi
 
 if [ -z $result ]; then result=false; fi
 if [ -z $sent ]; then sent=0; fi

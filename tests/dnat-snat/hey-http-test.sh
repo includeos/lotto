@@ -18,8 +18,6 @@ rate=$(printf "%s" "$raw" | awk '/Requests\/sec/ {print $2}' )
 # Only passes if 100% of packets were received
 if [ "$sent" -eq "$received" ]; then
   result=true
-else
-  result=false
 fi
 
 if [ -z $result ]; then result=false; fi

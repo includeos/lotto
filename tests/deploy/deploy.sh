@@ -1,6 +1,5 @@
 # deploy script
 # Script used for checking that deploying an image to an instance (live update) works
-set -e
 
 moth="{{.MothershipBinPathAndName}}"
 instAlias={{.OriginalAlias}}
@@ -9,18 +8,15 @@ naclID=$($moth push-nacl tests/deploy/interface.nacl {{.BuilderID}} -o id)
 # Build an image to deploy to the instance
 imgID=$($moth build Starbase {{.BuilderID}} --instance $instID --nacl $naclID --tag lotto-deploy-test --waitAndPrint)
 
-sent=0
-received=0
-
 # Deploy 100 times
 for i in {1..100}
 do
     sent=$[$sent + 1]
     # Deploy
-    if cmdOut=$($moth deploy $instID $imgID --wait); then
+    if raw=$($moth deploy $instID $imgID --wait); then
         # Check if the instance now runs the image (note that this will be the same imageId every time):
-        cmdOut+=$($moth inspect-instance $instID -o json | jq -r '.imageId')
-        if [[ "$cmdOut" == *"$imgID"* ]]; then
+        raw+=$($moth inspect-instance $instID -o json | jq -r '.imageId')
+        if [[ "$raw" == *"$imgID"* ]]; then
             received=$[$received + 1]
         fi
     else
@@ -39,17 +35,25 @@ do
     fi
 done
 
-# If none of the commands above failed it means that we were successful
-rate=0.1
-avg=0
+if [ "$sent" -eq "$received" ]; then
+  result=true
+fi
 
-jq  --arg dataSent $sent \
-    --arg dataReceived $received \
-    --arg dataRate $rate \
-    --arg dataAvg $avg \
-    --arg dataFull "$cmdOut" \
-    '. | .["sent"]=($dataSent|tonumber) |
-    .["received"]=($dataReceived|tonumber) |
-    .["rate"]=($dataRate|tonumber) |
-    .["avg"]=($dataAvg|tonumber) |
-    .["raw"]=$dataFull'<<<'{}'
+if [ -z $result ]; then result=false; fi
+if [ -z $sent ]; then sent=0; fi
+if [ -z $received ]; then received=0; fi
+if [ -z $rate ]; then rate=0; fi
+if [ -z $raw ]; then raw=""; fi
+jq \
+  --argjson result $result \
+  --argjson sent $sent \
+  --argjson received $received \
+  --argjson rate $rate \
+  --arg raw "$raw" \
+  '. |
+  .["result"]=$result |
+  .["sent"]=$sent |
+  .["received"]=$received |
+  .["rate"]=$rate |
+  .["raw"]=$raw
+  '<<<'{}'
