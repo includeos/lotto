@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func testProcedure(test *testFramework.TestConfig, env environment.Environment, mother *mothership.Mothership) error {
+func testProcedure(test *testFramework.TestConfig, env environment.Environment, mother *mothership.Mothership) (bool, error) {
 	pretty := pretty.NewPrettyTest(test.Name)
 	pretty.PrintHeader()
 	pretty.PrintTable(test.StringSlice())
@@ -21,7 +21,7 @@ func testProcedure(test *testFramework.TestConfig, env environment.Environment, 
 	// 2. Build service locally using docker
 	// 3. No building at all
 	if err := build(test, mother); err != nil {
-		return fmt.Errorf("error building: %v", err)
+		return false, fmt.Errorf("error building: %v", err)
 	}
 
 	// TEST script. 2 options:
@@ -31,7 +31,7 @@ func testProcedure(test *testFramework.TestConfig, env environment.Environment, 
 	// numRuns flag taken into account
 	result, err := test.RunTest(numRuns, env, mother)
 	if err != nil {
-		return fmt.Errorf("error running test %v", err)
+		return false, fmt.Errorf("error running test %v", err)
 	}
 
 	// RESULTS print test results
@@ -42,7 +42,7 @@ func testProcedure(test *testFramework.TestConfig, env environment.Environment, 
 	logrus.Info(health)
 
 	pretty.EndTest()
-	return nil
+	return result.Result, nil
 }
 
 func getTestsToRun(possibleTests []string) ([]*testFramework.TestConfig, error) {

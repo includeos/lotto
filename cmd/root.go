@@ -76,14 +76,22 @@ var RootCmd = &cobra.Command{
 			logrus.Fatalf("Error getting tests to run: %v", err)
 		}
 		// Run the tests
+		var testFailed bool
 		for loopIndex := 0; loopIndex < loops || loops == 0; loopIndex++ {
 			logrus.Infof("Test loop nr: %d, numRuns: %d", loopIndex+1, numRuns)
 			for _, test := range tests {
 				test.SkipRebuild = skipRebuildTest
-				if err = testProcedure(test, env, mother); err != nil {
+				passed, err := testProcedure(test, env, mother)
+				if err != nil {
 					logrus.Warningf("error running test %s: %v", test.Name, err)
 				}
+				if !passed {
+					testFailed = true
+				}
 			}
+		}
+		if testFailed {
+			logrus.Fatalf("More than 1 test has failed")
 		}
 	},
 }
