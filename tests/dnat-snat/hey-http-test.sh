@@ -9,23 +9,34 @@
 sent=1000
 concurrency=200
 timeout=2
-cmdOut=$(docker run --rm rcmorano/docker-hey -t $timeout -n $sent -c $concurrency http://10.100.0.30:1500)
+raw=$(docker run --rm rcmorano/docker-hey -t $timeout -n $sent -c $concurrency http://10.100.0.30:1500)
 
 # Parse output, important to set a default value if the command over fails
-received=$(printf "%s" "$cmdOut" | awk '/responses/ {print $2}' )
-if [ -z $received ]; then received=0; fi
-rate=$(printf "%s" "$cmdOut" | awk '/Requests\/sec/ {print $2}' )
-if [ -z $rate ]; then rate=0; fi
-avg=$(printf "%s" "$cmdOut" | awk '/Average/ {print $2}' )
-if [ -z $avg ]; then avg=0; fi
+received=$(printf "%s" "$raw" | awk '/responses/ {print $2}' )
+rate=$(printf "%s" "$raw" | awk '/Requests\/sec/ {print $2}' )
 
-jq  --arg dataSent $sent \
-    --arg dataReceived $received \
-    --arg dataRate $rate \
-    --arg dataAvg $avg \
-    --arg dataFull "$cmdOut" \
-    '. | .["sent"]=($dataSent|tonumber) |
-    .["received"]=($dataReceived|tonumber) |
-    .["rate"]=($dataRate|tonumber) |
-    .["avg"]=($dataAvg|tonumber) |
-    .["raw"]=$dataFull'<<<'{}'
+# Only passes if 100% of packets were received
+if [ "$sent" -eq "$received" ]; then
+  result=true
+else
+  result=false
+fi
+
+if [ -z $result ]; then result=false; fi
+if [ -z $sent ]; then sent=0; fi
+if [ -z $received ]; then received=0; fi
+if [ -z $rate ]; then rate=0; fi
+if [ -z $raw ]; then raw=""; fi
+jq \
+  --argjson result $result \
+  --argjson sent $sent \
+  --argjson received $received \
+  --argjson rate $rate \
+  --arg raw "$raw" \
+  '. |
+  .["result"]=$result |
+  .["sent"]=$sent |
+  .["received"]=$received |
+  .["rate"]=$rate |
+  .["raw"]=$raw
+  '<<<'{}'
