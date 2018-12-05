@@ -25,7 +25,6 @@ type TestConfig struct {
 	HostCommandScript   string                 `json:"hostcommandscript"`
 	Setup               environment.SSHClients `json:"setup"`
 	Cleanup             environment.SSHClients `json:"cleanup"`
-	ShouldFail          bool                   `json:"shouldfail"`
 	CustomServicePath   string                 `json:"customservicepath"`
 	NoDeploy            bool                   `json:"nodeploy"`
 	SkipRebuild         bool
@@ -84,11 +83,6 @@ func (c TestConfig) StringSlice() [][]string {
 		output = append(output, []string{"Script type", "[ ] ClientCommandScript / [X] HostCommandScript"})
 	}
 	output = append(output, []string{"Custom service", c.CustomServicePath})
-	if c.ShouldFail {
-		output = append(output, []string{"Should fail", "[X]"})
-	} else {
-		output = append(output, []string{"Should fail", "[ ]"})
-	}
 	if c.NoDeploy {
 		output = append(output, []string{"No deploy", "[X]"})
 	} else {
