@@ -11,8 +11,6 @@ raw=$(ping -c $sent -i $(awk "BEGIN {print 1/$rate}") -q 10.100.0.30)
 received=$(printf "%s" "$raw" | grep received | cut -d ' ' -f 4)
 if [ "$sent" -eq "$received" ]; then
   result=true
-else
-  result=false
 fi
 
 if [ -z $result ]; then result=false; fi
