@@ -3,11 +3,11 @@
   "naclfile": "load-balancer.nacl",
   "setup": {
   	"client1": "install_hey.sh",
-    "client3": "apacher_server_and_file_setup.sh",
-    "client4": "apacher_server_and_file_setup.sh"
+    "client3": "apache_server_and_file_setup.sh",
+    "client4": "apache_server_and_file_setup.sh"
   },
   "cleanup": {
-    "client3": "apacher_server_cleanup.sh",
-    "client4": "apacher_server_cleanup.sh"
+    "client3": "apache_server_cleanup.sh",
+    "client4": "apache_server_cleanup.sh"
   }
 }

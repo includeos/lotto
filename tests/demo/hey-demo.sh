@@ -13,6 +13,7 @@ received=$(printf "%s" "$raw" | awk '/responses/ {print $2}' )
 
 if [[ "$receivedStatus" != "[200]" ]]; then
     received=0;
+fi
 
 rate=$(printf "%s" "$raw" | awk '/Requests\/sec/ {print $2}' )
 
