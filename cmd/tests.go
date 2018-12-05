@@ -11,16 +11,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func testProcedure(test *testFramework.TestConfig, env environment.Environment, mother *mothership.Mothership) error {
+func testProcedure(test *testFramework.TestConfig, env environment.Environment, mother *mothership.Mothership) (bool, error) {
 	pretty := pretty.NewPrettyTest(test.Name)
 	pretty.PrintHeader()
+	pretty.PrintTable(test.StringSlice())
 
 	// BUILD & DEPLOY. 3 options:
 	// 1. Push NaCl and build on Mothership
 	// 2. Build service locally using docker
 	// 3. No building at all
 	if err := build(test, mother); err != nil {
-		return fmt.Errorf("error building: %v", err)
+		return false, fmt.Errorf("error building: %v", err)
 	}
 
 	// TEST script. 2 options:
@@ -30,23 +31,18 @@ func testProcedure(test *testFramework.TestConfig, env environment.Environment, 
 	// numRuns flag taken into account
 	result, err := test.RunTest(numRuns, env, mother)
 	if err != nil {
-		return fmt.Errorf("error running test %v", err)
+		return false, fmt.Errorf("error running test %v", err)
 	}
 
 	// RESULTS print test results
-	if result.SuccessPercentage > 50 {
-		pretty.PrintResult(true)
-	} else {
-		pretty.PrintResult(false)
-	}
-	logrus.Info(result)
+	pretty.PrintTable(result.StringSlice())
 
 	// VERIFY starbase status
 	health := mother.CheckInstanceHealth()
 	logrus.Info(health)
 
 	pretty.EndTest()
-	return nil
+	return result.Result, nil
 }
 
 func getTestsToRun(possibleTests []string) ([]*testFramework.TestConfig, error) {

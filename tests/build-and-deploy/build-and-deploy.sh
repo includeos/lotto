@@ -8,18 +8,15 @@ instID=$($moth inspect-instance $instAlias -o id)
 naclID=$($moth push-nacl tests/build-and-deploy/interface.nacl {{.BuilderID}} -o id)
 tagBase="image"
 
-sent=0
-received=0
-
-# Build and deploy 20 times
-for i in {1..20}
+# Build and deploy 10 times
+for i in {1..10}
 do
     tag="$tagBase-$i"
     sent=$[$sent + 1]
     # Build
     imgID=$($moth build Starbase {{.BuilderID}} --instance $instID --nacl $naclID --tag $tag --waitAndPrint)
     # Deploy
-    cmdOut+=$($moth deploy $instID $imgID --wait)
+    raw+=$($moth deploy $instID $imgID --wait 2>&1)
     # Check if the instance now runs the built image and that it reports the given tag:
     cmdOutImgID=$($moth inspect-instance $instID -o json | jq -r '.imageId')
     cmdOutTag=$($moth inspect-instance $instID -o json | jq -r '.tag')
@@ -29,16 +26,25 @@ do
 done
 
 # If none of the commands above failed it means that we were successful
-rate=0.1
-avg=0
+if [ "$sent" -eq "$received" ]; then
+  result=true
+fi
 
-jq  --arg dataSent $sent \
-    --arg dataReceived $received \
-    --arg dataRate $rate \
-    --arg dataAvg $avg \
-    --arg dataFull "$cmdOut" \
-    '. | .["sent"]=($dataSent|tonumber) |
-    .["received"]=($dataReceived|tonumber) |
-    .["rate"]=($dataRate|tonumber) |
-    .["avg"]=($dataAvg|tonumber) |
-    .["raw"]=$dataFull'<<<'{}'
+if [ -z $result ]; then result=false; fi
+if [ -z $sent ]; then sent=0; fi
+if [ -z $received ]; then received=0; fi
+if [ -z $rate ]; then rate=0; fi
+if [ -z $raw ]; then raw=""; fi
+jq \
+  --argjson result $result \
+  --argjson sent $sent \
+  --argjson received $received \
+  --argjson rate $rate \
+  --arg raw "$raw" \
+  '. |
+  .["result"]=$result |
+  .["sent"]=$sent |
+  .["received"]=$received |
+  .["rate"]=$rate |
+  .["raw"]=$raw
+  '<<<'{}'

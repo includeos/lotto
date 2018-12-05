@@ -8,8 +8,10 @@ import (
 	"html/template"
 	"io/ioutil"
 	"path"
+	"strconv"
 	"time"
 
+	"github.com/logrusorgru/aurora"
 	"github.com/mnordsletten/lotto/environment"
 	"github.com/mnordsletten/lotto/mothership"
 	"github.com/mnordsletten/lotto/util"
@@ -23,7 +25,6 @@ type TestConfig struct {
 	HostCommandScript   string                 `json:"hostcommandscript"`
 	Setup               environment.SSHClients `json:"setup"`
 	Cleanup             environment.SSHClients `json:"cleanup"`
-	ShouldFail          bool                   `json:"shouldfail"`
 	CustomServicePath   string                 `json:"customservicepath"`
 	NoDeploy            bool                   `json:"nodeploy"`
 	SkipRebuild         bool
@@ -33,16 +34,19 @@ type TestConfig struct {
 	NaclFileShasum      string
 }
 
+type testResponse struct {
+	Result   bool    `json:"result"`   // Pass/Fail of the test
+	Sent     int     `json:"sent"`     // Number of tests started
+	Received int     `json:"received"` // Number of responses received
+	Rate     float32 `json:"rate"`     // Requests pr second
+	Raw      string  `json:"raw"`      // Raw output from test
+}
+
 type TestResult struct {
-	Time              string  // Time that test results were recorded
-	Name              string  // Name of test
-	Sent              int     // Total number of requests sent
-	Received          int     // Total number of replies received
-	Rate              float32 // Requests pr second
-	Avg               float32 // Average response time
-	SuccessPercentage float32 // Percentage of packets that pass
-	Raw               string  // Raw output from the command
-	ShouldFail        bool    // If the test expects to fail
+	Name              string        // Name of test
+	Duration          time.Duration // Time to execute test
+	SuccessPercentage float32       // Percentage success
+	testResponse
 }
 
 type HostCommandTemplate struct {
@@ -52,22 +56,61 @@ type HostCommandTemplate struct {
 	BuilderID                string
 }
 
-func (tr TestResult) String() string {
-	return fmt.Sprintf("Result: %.1f%% %d/%d, Name: %s, ShouldFail: %t", tr.SuccessPercentage, tr.Received, tr.Sent, tr.Name, tr.ShouldFail)
+func (r TestResult) StringSlice() [][]string {
+	var result string
+	if r.Result {
+		result = fmt.Sprintf("[%s]", aurora.BgGreen(" PASS "))
+	} else {
+		result = fmt.Sprintf("[%s]", aurora.BgRed(" FAIL "))
+	}
+	return [][]string{
+		[]string{"Result", result},
+		[]string{"Sent", strconv.Itoa(r.Sent)},
+		[]string{"Received", strconv.Itoa(r.Received)},
+		[]string{"Percentage", fmt.Sprintf("%.1f%%", r.SuccessPercentage)},
+		[]string{"Rate", fmt.Sprintf("%.2f", r.Rate)},
+		[]string{"Duration", r.Duration.Truncate(1 * time.Second).String()},
+	}
+}
+
+func (c TestConfig) StringSlice() [][]string {
+	var output [][]string
+	if c.ClientCommandScript != "" {
+		output = append(output, []string{"Path", c.ClientCommandScript})
+		output = append(output, []string{"Script type", "[X] ClientCommandScript / [ ] HostCommandScript"})
+	} else if c.HostCommandScript != "" {
+		output = append(output, []string{"Path", c.HostCommandScript})
+		output = append(output, []string{"Script type", "[ ] ClientCommandScript / [X] HostCommandScript"})
+	}
+	output = append(output, []string{"Custom service", c.CustomServicePath})
+	if c.NoDeploy {
+		output = append(output, []string{"No deploy", "[X]"})
+	} else {
+		output = append(output, []string{"No deploy", "[ ]"})
+	}
+	if c.SkipRebuild {
+		output = append(output, []string{"Skip rebuild", "[X]"})
+	} else {
+		output = append(output, []string{"Skip rebuild", "[ ]"})
+	}
+	return output
 }
 
 // RunTest runs the clientCmdScript on either host or client1 level number of times and returns a TestResult
-func (t *TestConfig) RunTest(level int, env environment.Environment, mother *mothership.Mothership) (TestResult, error) {
+func (t *TestConfig) RunTest(iterations int, env environment.Environment, mother *mothership.Mothership) (TestResult, error) {
 	// Prepare test before run
+	logrus.Info("Preparing clients")
 	if err := t.runScriptsOnClients(env, t.Setup); err != nil {
 		return TestResult{}, fmt.Errorf("error preparing test: %v", err)
 	}
 	defer t.cleanupTest(mother, env)
 	var results []TestResult
-	for i := 0; i < level; i++ {
+	logrus.Info("Starting test")
+	for i := 0; i < iterations; i++ {
 		var testOutput []byte
 		var testResult TestResult
 		testResult.Name = t.Name
+		start := time.Now()
 		var err error
 		// Run test either in client or in host
 		if t.ClientCommandScript != "" {
@@ -81,24 +124,14 @@ func (t *TestConfig) RunTest(level int, env environment.Environment, mother *mot
 		} else {
 			return testResult, fmt.Errorf("no testFile found")
 		}
+		testResult.Duration = time.Now().Sub(start)
 
 		// Parse test results
 		if err = json.Unmarshal(testOutput, &testResult); err != nil {
 			return testResult, fmt.Errorf("could not parse testResults: %v", err)
 		}
-		testResult.Time = time.Now().Format(time.RFC3339)
 
 		// Calculate success
-		testResult.ShouldFail = t.ShouldFail
-		if t.ShouldFail {
-			if testResult.Received > 0 {
-				testResult.SuccessPercentage = 0
-			} else {
-				testResult.SuccessPercentage = 100
-			}
-		} else {
-			testResult.SuccessPercentage = float32(testResult.Received) / float32(testResult.Sent) * 100
-		}
 		results = append(results, testResult)
 	}
 	return combineTestResults(results), nil
@@ -184,22 +217,18 @@ func (t *TestConfig) cleanupTest(mother *mothership.Mothership, env environment.
 
 func combineTestResults(results []TestResult) TestResult {
 	end := TestResult{}
+	end.Result = true // true until otherwise proven
 	for _, result := range results {
+		if !result.Result {
+			end.Result = false
+		}
 		end.Name = result.Name
 		end.Sent += result.Sent
 		end.Received += result.Received
 		end.Rate += result.Rate
-		end.ShouldFail = result.ShouldFail
+		end.Duration += result.Duration
 	}
-	if end.ShouldFail {
-		if end.Received > 0 {
-			end.SuccessPercentage = 0
-		} else {
-			end.SuccessPercentage = 100
-		}
-	} else {
-		end.SuccessPercentage = float32(end.Received) / float32(end.Sent) * 100
-	}
-	end.Time = time.Now().Format(time.RFC3339)
+	end.Rate = end.Rate / float32(len(results))
+	end.SuccessPercentage = float32(end.Received) / float32(end.Sent) * 100
 	return end
 }

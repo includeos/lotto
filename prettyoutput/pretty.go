@@ -2,9 +2,10 @@ package pretty
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
-	"github.com/bclicn/color"
+	"github.com/olekukonko/tablewriter"
 )
 
 const width = 80
@@ -12,27 +13,29 @@ const width = 80
 var separator = strings.Repeat("=", width)
 
 type PrettyTest struct {
-	Name string
+	Name  string
+	table *tablewriter.Table
 }
 
 func NewPrettyTest(name string) PrettyTest {
-	return PrettyTest{Name: name}
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetAutoWrapText(false)
+	return PrettyTest{Name: name, table: table}
 }
 
 func (t PrettyTest) PrintHeader() {
-	fmt.Printf("%s\n"+
-		"Test: %s\n"+
-		"Test-info: blah blah\n", separator, t.Name)
+	title := fmt.Sprintf(" test: %s ", t.Name)
+	lenTitle := len(title)
+	fillEachSide := (width - lenTitle) / 2
+	fill := strings.Repeat("=", fillEachSide)
+	fmt.Printf("%s%s%s\n", fill, title, fill)
 }
 
-func (t PrettyTest) PrintResult(result bool) {
-	var output string
-	if result {
-		output = color.BGreen("PASS")
-	} else {
-		output = color.BRed("FAIL")
-	}
-	fmt.Printf("Test result: [ %s ]\n", output)
+func (t PrettyTest) PrintTable(data [][]string) {
+	t.table.ClearRows()
+	t.table.AppendBulk(data)
+	t.table.Render()
 }
 
 func (t PrettyTest) EndTest() {

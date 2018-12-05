@@ -11,8 +11,6 @@ naclID=$($moth push-nacl tests/download-image-for-hypervisors/interface.nacl {{.
 imgID=$($moth build Starbase {{.BuilderID}} --instance $instID --nacl $naclID --waitAndPrint)
 
 hypervisor=""
-sent=0
-received=0
 
 # Download the image for hypervisors qemu, vcloud and virtualbox
 for i in {1..3}
@@ -27,21 +25,32 @@ do
     downloadedImgName="img-$hypervisor"
     sent=$[$sent + 1]
     # Download image
-    cmdOut=$($moth pull-image $imgID $downloadedImgName --format $hypervisor)
-    received=$[$received + 1]
+    raw+=$($moth pull-image $imgID $downloadedImgName --format $hypervisor 2>&1)
+    if [ "$?" -eq "0" ]; then
+      received=$[$received + 1]
+    fi
 done
 
 # If none of the commands above failed it means that we were successful
-rate=0.1
-avg=0
+if [ "$sent" -eq "$received" ]; then
+  result=true
+fi
 
-jq  --arg dataSent $sent \
-    --arg dataReceived $received \
-    --arg dataRate $rate \
-    --arg dataAvg $avg \
-    --arg dataFull "$cmdOut" \
-    '. | .["sent"]=($dataSent|tonumber) |
-    .["received"]=($dataReceived|tonumber) |
-    .["rate"]=($dataRate|tonumber) |
-    .["avg"]=($dataAvg|tonumber) |
-    .["raw"]=$dataFull'<<<'{}'
+if [ -z $result ]; then result=false; fi
+if [ -z $sent ]; then sent=0; fi
+if [ -z $received ]; then received=0; fi
+if [ -z $rate ]; then rate=0; fi
+if [ -z $raw ]; then raw=""; fi
+jq \
+  --argjson result $result \
+  --argjson sent $sent \
+  --argjson received $received \
+  --argjson rate $rate \
+  --arg raw "$raw" \
+  '. |
+  .["result"]=$result |
+  .["sent"]=$sent |
+  .["received"]=$received |
+  .["rate"]=$rate |
+  .["raw"]=$raw
+  '<<<'{}'

@@ -7,15 +7,14 @@ port=4242
 # delay=
 data="hi"
 
-cmdOut=$(nping -c $sent --rate $rate $mode -p $port --data-string $data 10.100.0.30)
-res=$(printf "%s" "$cmdOut" | grep "UDP packets")
+raw=$(nping -c $sent --rate $rate $mode -p $port --data-string $data 10.100.0.30)
+res=$(printf "%s" "$raw" | grep "UDP packets")
 
 # Possible:
 # attempts=$(printf "%s" "$res" | cut -d ' ' -f 4)
 # if [ -z $attempts ]; then attempts=0; fi
 
 received=$(printf "%s" "$res" | cut -d ' ' -f 7)
-if [ -z $received ]; then received=0; fi
 # Or:
 # successful=$(printf "%s" "$res" | cut -d ' ' -f 7)
 # if [ -z $successful ]; then successful=0; fi
@@ -24,11 +23,25 @@ if [ -z $received ]; then received=0; fi
 # failed=$(printf "%s" "$res" | cut -d ' ' -f 10)
 # if [ -z $failed ]; then failed=0; fi
 
-jq  --arg dataSent $sent \
-    --arg dataReceived $received \
-    --arg dataRate $rate \
-    --arg dataFull "$cmdOut" \
-    '. | .["sent"]=($dataSent|tonumber) |
-    .["received"]=($dataReceived|tonumber) |
-    .["rate"]=($dataRate|tonumber) |
-    .["raw"]=$dataFull'<<<'{}'
+if [ "$sent" -eq "$received" ]; then
+  result=true
+fi
+
+if [ -z $result ]; then result=false; fi
+if [ -z $sent ]; then sent=0; fi
+if [ -z $received ]; then received=0; fi
+if [ -z $rate ]; then rate=0; fi
+if [ -z $raw ]; then raw=""; fi
+jq \
+  --argjson result $result \
+  --argjson sent $sent \
+  --argjson received $received \
+  --argjson rate $rate \
+  --arg raw "$raw" \
+  '. |
+  .["result"]=$result |
+  .["sent"]=$sent |
+  .["received"]=$received |
+  .["rate"]=$rate |
+  .["raw"]=$raw
+  '<<<'{}'

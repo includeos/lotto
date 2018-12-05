@@ -66,7 +66,7 @@ func ReadFromDisk(testPath string) (*TestConfig, error) {
 
 // verifyTestFiles checks for the existence of selected files in the path supplied
 func verifyTestFiles(testPath string) error {
-	expectedFiles := []string{"testspec.json", "*.nacl", "*.sh"}
+	expectedFiles := []string{"testspec.json", "*.sh"}
 
 	for _, file := range expectedFiles {
 		pathToCheck := path.Join(testPath, file)
