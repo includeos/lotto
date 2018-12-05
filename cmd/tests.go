@@ -14,7 +14,7 @@ import (
 func testProcedure(test *testFramework.TestConfig, env environment.Environment, mother *mothership.Mothership) error {
 	pretty := pretty.NewPrettyTest(test.Name)
 	pretty.PrintHeader()
-	pretty.Print(test)
+	pretty.PrintTable(test.StringSlice())
 
 	// BUILD & DEPLOY. 3 options:
 	// 1. Push NaCl and build on Mothership
@@ -35,12 +35,7 @@ func testProcedure(test *testFramework.TestConfig, env environment.Environment, 
 	}
 
 	// RESULTS print test results
-	if result.SuccessPercentage > 50 {
-		pretty.PrintResult(true)
-	} else {
-		pretty.PrintResult(false)
-	}
-	logrus.Info(result)
+	pretty.PrintTable(result.StringSlice())
 
 	// VERIFY starbase status
 	health := mother.CheckInstanceHealth()

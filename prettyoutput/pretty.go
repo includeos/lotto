@@ -2,9 +2,10 @@ package pretty
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/olekukonko/tablewriter"
 )
 
 const width = 80
@@ -12,29 +13,29 @@ const width = 80
 var separator = strings.Repeat("=", width)
 
 type PrettyTest struct {
-	Name string
+	Name  string
+	table *tablewriter.Table
 }
 
 func NewPrettyTest(name string) PrettyTest {
-	return PrettyTest{Name: name}
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetAutoWrapText(false)
+	return PrettyTest{Name: name, table: table}
 }
 
 func (t PrettyTest) PrintHeader() {
-	fmt.Println(separator)
+	title := fmt.Sprintf(" test: %s ", t.Name)
+	lenTitle := len(title)
+	fillEachSide := (width - lenTitle) / 2
+	fill := strings.Repeat("=", fillEachSide)
+	fmt.Printf("%s%s%s\n", fill, title, fill)
 }
 
-func (t PrettyTest) Print(x interface{}) {
-	fmt.Println(x)
-}
-
-func (t PrettyTest) PrintResult(result bool) {
-	var output string
-	if result {
-		output = aurora.BgGreen(" PASS ").String()
-	} else {
-		output = aurora.BgRed(" FAIL ").String()
-	}
-	fmt.Printf("Test result: [ %s ]\n", output)
+func (t PrettyTest) PrintTable(data [][]string) {
+	t.table.ClearRows()
+	t.table.AppendBulk(data)
+	t.table.Render()
 }
 
 func (t PrettyTest) EndTest() {
