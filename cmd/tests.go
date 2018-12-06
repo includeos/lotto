@@ -42,7 +42,7 @@ func testProcedure(test *testFramework.TestConfig, env environment.Environment, 
 	logrus.Info(health)
 
 	pretty.EndTest()
-	return result.Result, nil
+	return result.Success, nil
 }
 
 func getTestsToRun(possibleTests []string) ([]*testFramework.TestConfig, error) {
