@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/mnordsletten/lotto/environment"
 	"github.com/mnordsletten/lotto/mothership"
 	"github.com/sirupsen/logrus"
@@ -77,18 +80,25 @@ var RootCmd = &cobra.Command{
 		}
 		// Run the tests
 		var testFailed bool
+		var testUnstable bool
 		for loopIndex := 0; loopIndex < loops || loops == 0; loopIndex++ {
 			logrus.Infof("Test loop nr: %d, numRuns: %d", loopIndex+1, numRuns)
 			for _, test := range tests {
 				test.SkipRebuild = skipRebuildTest
 				passed, err := testProcedure(test, env, mother)
 				if err != nil {
-					logrus.Warningf("error running test %s: %v", test.Name, err)
+					logrus.Warningf("unstable environment, could not run test without problems %s: %v", test.Name, err)
+					testUnstable = true
+					continue
 				}
 				if !passed {
 					testFailed = true
 				}
 			}
+		}
+		if testUnstable {
+			fmt.Fprintln(os.Stderr, "More than 1 test was unstable")
+			os.Exit(2) // Used to mark test as unstable
 		}
 		if testFailed {
 			logrus.Fatalf("More than 1 test has failed")
