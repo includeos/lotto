@@ -34,7 +34,7 @@ type TestConfig struct {
 	NaclFileShasum      string
 }
 
-type testResponse struct {
+type TestResponse struct {
 	Success  bool    `json:"success"`  // Pass/Fail of the test
 	Sent     int     `json:"sent"`     // Number of tests started
 	Received int     `json:"received"` // Number of responses received
@@ -43,10 +43,10 @@ type testResponse struct {
 }
 
 type TestResult struct {
-	Name              string        // Name of test
-	Duration          time.Duration // Time to execute test
+	Name              string        `json:"name"`     // Name of test
+	Duration          time.Duration `json:"duration"` // Time to execute test
 	SuccessPercentage float32       // Percentage success
-	testResponse
+	TestResponse
 }
 
 type HostCommandTemplate struct {

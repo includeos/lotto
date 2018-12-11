@@ -7,6 +7,7 @@ import (
 	"github.com/mnordsletten/lotto/environment"
 	"github.com/mnordsletten/lotto/mothership"
 	"github.com/mnordsletten/lotto/prettyoutput"
+	"github.com/mnordsletten/lotto/reporting"
 	"github.com/mnordsletten/lotto/testFramework"
 	"github.com/sirupsen/logrus"
 )
@@ -42,6 +43,13 @@ func testProcedure(test *testFramework.TestConfig, env environment.Environment, 
 	logrus.Info(health)
 
 	pretty.EndTest()
+	reporting.SendReport(reporting.Dashboard{
+		Address:           "http://localhost:7070/upload",
+		MothershipVersion: "v1",
+		IncludeOSVersion:  builderName,
+		Environment:       cmdEnv,
+		TestResult:        result,
+	})
 	return result.Success, nil
 }
 
