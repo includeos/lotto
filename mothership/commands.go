@@ -3,7 +3,6 @@ package mothership
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 	"os/exec"
 	"path"
@@ -50,10 +49,12 @@ func (m *Mothership) pushUplink(file, name string) error {
 		}
 	}
 	// Push the uplink
-	request = fmt.Sprintf("push-uplink %s", file)
-	if _, err := m.bin(request); err != nil {
+	request = fmt.Sprintf("push-uplink -o id %s", file)
+	uplinkID, err := m.bin(request)
+	if err != nil {
 		return fmt.Errorf("couldn't push uplink %s: %v", file, err)
 	}
+	m.uplinkID = uplinkID
 	return nil
 }
 
@@ -61,7 +62,7 @@ func (m *Mothership) pushUplink(file, name string) error {
 func (m *Mothership) build(naclID string) (string, error) {
 	logrus.Infof("Building image with nacl: %s", naclID)
 	m.lastBuildTag = fmt.Sprintf("lotto-%s", time.Now().Format("20060102150405"))
-	request := fmt.Sprintf("build --waitAndPrint -n %s -u %s --tag %s Starbase %s", naclID, m.uplinkname, m.lastBuildTag, m.BuilderID)
+	request := fmt.Sprintf("build --waitAndPrint -n %s -u %s --tag %s Starbase %s", naclID, m.uplinkID, m.lastBuildTag, m.BuilderID)
 	checksum, err := m.bin(request)
 	if err != nil {
 		return "", fmt.Errorf("error building: %v", err)
