@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
@@ -16,12 +17,16 @@ func BuildServiceInDocker(servicePath, uplinkName, dockerContainerName string) e
 			return fmt.Errorf("error removing resource %s: %v", resource, err)
 		}
 	}
+	uplinkData, err := ioutil.ReadFile(uplinkName)
+	if err != nil {
+		return fmt.Errorf("error reading uplink %s: %v", uplinkName, err)
+	}
+	fullConfig := fmt.Sprintf("{\"uplink\":%s}", uplinkData)
 
 	// Copy config.json to folder
-	if err := os.Link(uplinkName, config); err != nil {
-		return fmt.Errorf("error linking config.json: %v", err)
+	if err := ioutil.WriteFile(config, []byte(fullConfig), 0644); err != nil {
+		return fmt.Errorf("error writing config to file: %v", err)
 	}
-
 	// Build using docker
 	cur, err := user.Current()
 	if err != nil {
