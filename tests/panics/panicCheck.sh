@@ -6,7 +6,7 @@ moth="{{.MothershipBinPathAndName}}"
 alias={{.OriginalAlias}}
 image_ID={{.ImageID}}
 
-# Variables sent as result
+# Variables sent as success
 sent=1
 received=0
 rate=1
@@ -31,22 +31,22 @@ for i in {1..15}; do
 done
 
 if [ "$sent" -eq "$received" ]; then
-  result=true
+  success=true
 fi
 
-if [ -z $result ]; then result=false; fi
+if [ -z $success ]; then success=false; fi
 if [ -z $sent ]; then sent=0; fi
 if [ -z $received ]; then received=0; fi
 if [ -z $rate ]; then rate=0; fi
 if [ -z $raw ]; then raw=""; fi
 jq \
-  --argjson result $result \
+  --argjson success $success \
   --argjson sent $sent \
   --argjson received $received \
   --argjson rate $rate \
   --arg raw "$raw" \
   '. |
-  .["result"]=$result |
+  .["success"]=$success |
   .["sent"]=$sent |
   .["received"]=$received |
   .["rate"]=$rate |

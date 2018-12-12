@@ -23,7 +23,7 @@ type Mothership struct {
 	Password       string `json:"password,omitempty"`
 	VerifyTLS      bool   `json:"verifytls,omitempty"`
 	Binary         string `json:"binarypath,omitempty"`
-	uplinkname     string
+	uplinkID       string
 	uplinkFileName string
 	Alias          string
 	lastBuildTag   string
@@ -48,7 +48,6 @@ func NewMothership(host, username, password, binary string, port int, notls, ver
 	if err = m.pushUplink(uplinkInfo.FileName, uplinkInfo.Name); err != nil {
 		return m, fmt.Errorf("error pushing uplink %s: %v", uplinkInfo.FileName, err)
 	}
-	m.uplinkname = uplinkInfo.Name
 	m.uplinkFileName = uplinkInfo.FileName
 	m.Alias = fmt.Sprintf("lotto-%s-%s", env.Name(), m.Username)
 	logrus.Infof("Starbase alias to use: %s", m.Alias)

@@ -36,23 +36,23 @@ raw+=$($moth instance-alias $ID $instAlias 2>&1)
 
 # All commands above succeeded
 if [ "$sent" -eq "$received" ]; then
-  result=true
+  success=true
 fi
 
-if [ -z $result ]; then result=false; fi
+if [ -z $success ]; then success=false; fi
 if [ -z $sent ]; then sent=0; fi
 if [ -z $received ]; then received=0; fi
 if [ -z $rate ]; then rate=0; fi
 if [ -z $raw ]; then raw=""; fi
 
 jq \
-  --argjson result $result \
+  --argjson success $success \
   --argjson sent $sent \
   --argjson received $received \
   --argjson rate $rate \
   --arg raw "$raw" \
   '. |
-  .["result"]=$result |
+  .["success"]=$success |
   .["sent"]=$sent |
   .["received"]=$received |
   .["rate"]=$rate |

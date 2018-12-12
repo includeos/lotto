@@ -34,8 +34,8 @@ type TestConfig struct {
 	NaclFileShasum      string
 }
 
-type testResponse struct {
-	Result   bool    `json:"result"`   // Pass/Fail of the test
+type TestResponse struct {
+	Success  bool    `json:"success"`  // Pass/Fail of the test
 	Sent     int     `json:"sent"`     // Number of tests started
 	Received int     `json:"received"` // Number of responses received
 	Rate     float32 `json:"rate"`     // Requests pr second
@@ -43,10 +43,10 @@ type testResponse struct {
 }
 
 type TestResult struct {
-	Name              string        // Name of test
-	Duration          time.Duration // Time to execute test
+	Name              string        `json:"name"`     // Name of test
+	Duration          time.Duration `json:"duration"` // Time to execute test
 	SuccessPercentage float32       // Percentage success
-	testResponse
+	TestResponse
 }
 
 type HostCommandTemplate struct {
@@ -57,14 +57,14 @@ type HostCommandTemplate struct {
 }
 
 func (r TestResult) StringSlice() [][]string {
-	var result string
-	if r.Result {
-		result = fmt.Sprintf("[%s]", aurora.BgGreen(" PASS "))
+	var success string
+	if r.Success {
+		success = fmt.Sprintf("[%s]", aurora.BgGreen(" PASS "))
 	} else {
-		result = fmt.Sprintf("[%s]", aurora.BgRed(" FAIL "))
+		success = fmt.Sprintf("[%s]", aurora.BgRed(" FAIL "))
 	}
 	return [][]string{
-		[]string{"Result", result},
+		[]string{"Result", success},
 		[]string{"Sent", strconv.Itoa(r.Sent)},
 		[]string{"Received", strconv.Itoa(r.Received)},
 		[]string{"Percentage", fmt.Sprintf("%.1f%%", r.SuccessPercentage)},
@@ -217,10 +217,10 @@ func (t *TestConfig) cleanupTest(mother *mothership.Mothership, env environment.
 
 func combineTestResults(results []TestResult) TestResult {
 	end := TestResult{}
-	end.Result = true // true until otherwise proven
+	end.Success = true // true until otherwise proven
 	for _, result := range results {
-		if !result.Result {
-			end.Result = false
+		if !result.Success {
+			end.Success = false
 		}
 		end.Name = result.Name
 		end.Sent += result.Sent
